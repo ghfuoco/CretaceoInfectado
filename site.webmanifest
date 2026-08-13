@@ -1,0 +1,30 @@
+{
+  "name": "Cretáceo Infectado",
+  "short_name": "Cretáceo",
+  "description": "Sniper de elite contra dinossauros zumbis no vale crepuscular.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a070c",
+  "theme_color": "#0a070c",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
