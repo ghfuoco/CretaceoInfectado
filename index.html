@@ -468,7 +468,7 @@
       SPAWN_Z_MIN: 170,
       SPAWN_Z_MAX: 280,
       SPAWN_X_RANGE: 32,
-      ENEMY_SCALE: { raptor: 3.4, trike: 3.0, ptera: 3.6, trex: 3.8 },
+      ENEMY_SCALE: { raptor: 1.45, trike: 1.65, ptera: 1.7, trex: 2.05 },
       MAX_BULLETS: 10,
 
       RAPTOR_HP: 32,
@@ -552,6 +552,203 @@
           g.fillRect(Math.random() * s, Math.random() * s, 1 + Math.random() * 4, 1 + Math.random() * 3);
         }
       }, 256);
+    }
+
+    // =====================================================================
+    // Creature sprites — canvas-painted 3/4 billboards, 2 walk frames
+    // =====================================================================
+    const SPRITES = { raptor: [], trike: [], ptera: [], trex: [] };
+    const SPRITE_SIZE = { raptor: [10, 8], trike: [14, 9.5], ptera: [18, 10], trex: [20, 18] };
+
+    function spriteTex(draw) {
+      const S = 512;
+      const c = document.createElement("canvas");
+      c.width = c.height = S;
+      const g = c.getContext("2d");
+      g.clearRect(0, 0, S, S);
+      draw(g, S);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.minFilter = THREE.LinearMipmapLinearFilter;
+      t.magFilter = THREE.LinearFilter;
+      t.needsUpdate = true;
+      return t;
+    }
+
+    function ellipse(g, x, y, rx, ry, rot, fill) {
+      g.save();
+      g.translate(x, y);
+      g.rotate(rot || 0);
+      g.fillStyle = fill;
+      g.beginPath();
+      g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+
+    function spores(g, x, y, n) {
+      for (let i = 0; i < n; i++) {
+        g.fillStyle = `rgba(18,28,8,${0.25 + Math.random() * 0.4})`;
+        g.beginPath();
+        g.arc(x + (Math.random() - 0.5) * 90, y + (Math.random() - 0.5) * 70, 1.5 + Math.random() * 4, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+
+    function drawRaptor(g, S, frame) {
+      const cx = S * 0.52, cy = S * 0.55;
+      const kick = frame ? 1 : -1;
+      // tail
+      g.fillStyle = "#2e3a1c";
+      g.beginPath();
+      g.moveTo(cx - 30, cy + 10);
+      g.quadraticCurveTo(cx - 130, cy + 40 + kick * 18, cx - 210, cy - 10 - kick * 24);
+      g.quadraticCurveTo(cx - 140, cy + 70, cx - 10, cy + 40);
+      g.fill();
+      ellipse(g, cx - 8, cy + 8, 78, 58, -0.28, "#4a5828");
+      ellipse(g, cx + 6, cy + 22, 48, 32, -0.2, "#3a2818");
+      g.strokeStyle = "#d2c4a0";
+      g.lineWidth = 4;
+      for (let i = 0; i < 5; i++) {
+        g.beginPath();
+        g.arc(cx + 4, cy + 4, 16 + i * 9, 0.15, 1.15);
+        g.stroke();
+      }
+      ellipse(g, cx + 58, cy - 42, 24, 40, 0.55, "#455226");
+      ellipse(g, cx + 92, cy - 82, 48, 30, -0.4, "#3d4a24");
+      ellipse(g, cx + 112, cy - 64, 36, 13, 0.25, "#2a1c12");
+      g.fillStyle = "#efe6d0";
+      for (let i = 0; i < 6; i++) g.fillRect(cx + 92 + i * 8, cy - 72, 3.5, 11);
+      g.shadowColor = "#b6ff44";
+      g.shadowBlur = 22;
+      g.fillStyle = "#d4ff6a";
+      g.beginPath(); g.arc(cx + 100, cy - 92, 8, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(cx + 80, cy - 86, 6, 0, Math.PI * 2); g.fill();
+      g.shadowBlur = 0;
+      g.fillStyle = "#241c10";
+      g.fillRect(cx - 28 + kick * 22, cy + 40, 24, 110);
+      g.fillRect(cx + 18 - kick * 20, cy + 52, 22, 98);
+      g.fillStyle = "#c9bc96";
+      g.fillRect(cx - 28 + kick * 22, cy + 142, 34, 8);
+      g.fillRect(cx + 18 - kick * 20, cy + 142, 32, 8);
+      ellipse(g, cx + 40, cy - 6, 16, 36, 0.9, "#3a4a22");
+      g.fillStyle = "#d8c8a0";
+      g.fillRect(cx + 62, cy + 18, 18, 5);
+      spores(g, cx, cy - 20, 14);
+    }
+
+    function drawTrike(g, S, frame) {
+      const cx = S * 0.5, cy = S * 0.58;
+      const st = frame ? 8 : -8;
+      ellipse(g, cx - 70, cy + 10, 70, 28, 0.15, "#4a3024");
+      ellipse(g, cx, cy, 110, 72, -0.08, "#5a3a28");
+      ellipse(g, cx + 10, cy + 18, 70, 40, 0, "#3a2218");
+      // frill
+      g.fillStyle = "#b8a078";
+      g.beginPath();
+      g.ellipse(cx + 70, cy - 70, 88, 70, -0.2, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = "#6a4030";
+      g.beginPath();
+      g.ellipse(cx + 70, cy - 70, 62, 48, -0.2, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = "#d4c4a0";
+      g.beginPath();
+      g.moveTo(cx + 70, cy - 40); g.lineTo(cx + 175, cy - 55); g.lineTo(cx + 78, cy - 20); g.fill();
+      g.beginPath();
+      g.moveTo(cx + 90, cy - 90); g.lineTo(cx + 155, cy - 130); g.lineTo(cx + 70, cy - 80); g.fill();
+      g.beginPath();
+      g.moveTo(cx + 50, cy - 95); g.lineTo(cx + 20, cy - 145); g.lineTo(cx + 40, cy - 70); g.fill();
+      ellipse(g, cx + 88, cy - 28, 42, 32, -0.1, "#4a3020");
+      g.shadowColor = "#ff6622";
+      g.shadowBlur = 18;
+      g.fillStyle = "#ff8844";
+      g.beginPath(); g.arc(cx + 102, cy - 36, 7, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(cx + 78, cy - 32, 6, 0, Math.PI * 2); g.fill();
+      g.shadowBlur = 0;
+      g.fillStyle = "#2a1c12";
+      g.fillRect(cx - 50 + st, cy + 55, 28, 95);
+      g.fillRect(cx - 10 - st, cy + 62, 26, 88);
+      g.fillRect(cx + 40 + st * 0.5, cy + 50, 30, 100);
+      g.fillRect(cx + 78 - st * 0.5, cy + 58, 26, 90);
+      g.strokeStyle = "#c9bc96";
+      g.lineWidth = 5;
+      for (let i = 0; i < 4; i++) {
+        g.beginPath(); g.arc(cx - 10, cy, 24 + i * 10, 0.4, 1.3); g.stroke();
+      }
+      spores(g, cx, cy, 16);
+    }
+
+    function drawPtera(g, S, frame) {
+      const cx = S * 0.5, cy = S * 0.48;
+      const flap = frame ? 0.35 : -0.28;
+      g.save();
+      g.translate(cx, cy);
+      g.rotate(flap);
+      ellipse(g, -150, 10, 160, 18, -0.15, "#2a2818");
+      ellipse(g, -150, 4, 150, 8, -0.15, "#3a4a28");
+      g.restore();
+      g.save();
+      g.translate(cx, cy);
+      g.rotate(-flap);
+      ellipse(g, 150, 10, 160, 18, 0.15, "#2a2818");
+      ellipse(g, 150, 4, 150, 8, 0.15, "#3a4a28");
+      g.restore();
+      ellipse(g, cx, cy + 8, 36, 22, 0, "#3a4a28");
+      ellipse(g, cx + 8, cy - 6, 22, 28, 0.4, "#455226");
+      ellipse(g, cx + 40, cy - 18, 48, 16, -0.35, "#3d4a24");
+      g.fillStyle = "#c9bc96";
+      g.beginPath();
+      g.moveTo(cx + 70, cy - 28); g.lineTo(cx + 130, cy - 48); g.lineTo(cx + 72, cy - 12); g.fill();
+      g.shadowColor = "#9dff33";
+      g.shadowBlur = 16;
+      g.fillStyle = "#d4ff6a";
+      g.beginPath(); g.arc(cx + 48, cy - 24, 6, 0, Math.PI * 2); g.fill();
+      g.shadowBlur = 0;
+      ellipse(g, cx - 30, cy + 18, 10, 40, 0.6, "#2a2416");
+      spores(g, cx, cy, 10);
+    }
+
+    function drawTrex(g, S, frame) {
+      const cx = S * 0.5, cy = S * 0.58;
+      const st = frame ? 10 : -10;
+      ellipse(g, cx - 80, cy + 20, 90, 28, 0.35, "#2a3018");
+      ellipse(g, cx - 10, cy + 10, 100, 80, -0.12, "#3a4020");
+      ellipse(g, cx, cy + 30, 60, 40, 0, "#2a1810");
+      g.strokeStyle = "#c4b490";
+      g.lineWidth = 6;
+      for (let i = 0; i < 5; i++) {
+        g.beginPath(); g.arc(cx - 8, cy + 8, 22 + i * 12, 0.2, 1.2); g.stroke();
+      }
+      ellipse(g, cx + 70, cy - 70, 88, 62, -0.15, "#3a4020");
+      ellipse(g, cx + 110, cy - 48, 70, 28, 0.12, "#2a2014");
+      g.fillStyle = "#efe6d0";
+      for (let i = 0; i < 8; i++) g.fillRect(cx + 78 + i * 10, cy - 52, 5, 16);
+      g.shadowColor = "#ff3311";
+      g.shadowBlur = 24;
+      g.fillStyle = "#ff5533";
+      g.beginPath(); g.arc(cx + 92, cy - 88, 10, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(cx + 58, cy - 82, 8, 0, Math.PI * 2); g.fill();
+      g.shadowBlur = 0;
+      g.fillStyle = "#2a2014";
+      g.fillRect(cx - 40 + st, cy + 70, 42, 150);
+      g.fillRect(cx + 20 - st, cy + 82, 40, 138);
+      ellipse(g, cx + 70, cy + 8, 12, 28, 0.8, "#3a4020");
+      ellipse(g, cx + 40, cy + 12, 12, 26, 1.1, "#3a4020");
+      g.shadowColor = "#ff4400";
+      g.shadowBlur = 16;
+      g.fillStyle = "#ff6622";
+      g.beginPath(); g.arc(cx + 8, cy + 6, 14, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(cx - 20, cy + 90, 12, 0, Math.PI * 2); g.fill();
+      g.shadowBlur = 0;
+      spores(g, cx, cy - 10, 22);
+    }
+
+    function initSprites() {
+      SPRITES.raptor = [spriteTex((g, S) => drawRaptor(g, S, 0)), spriteTex((g, S) => drawRaptor(g, S, 1))];
+      SPRITES.trike = [spriteTex((g, S) => drawTrike(g, S, 0)), spriteTex((g, S) => drawTrike(g, S, 1))];
+      SPRITES.ptera = [spriteTex((g, S) => drawPtera(g, S, 0)), spriteTex((g, S) => drawPtera(g, S, 1))];
+      SPRITES.trex = [spriteTex((g, S) => drawTrex(g, S, 0)), spriteTex((g, S) => drawTrex(g, S, 1))];
     }
 
     // =====================================================================
@@ -1065,14 +1262,30 @@
         m.position.set(x, y, z);
         m.rotation.set(rx, ry, rz);
         m.scale.set(sx, sy, sz);
-        m.castShadow = true;
-        m.receiveShadow = true;
+        m.castShadow = false;
+        m.receiveShadow = false;
+        m.visible = zone === "weak";
         m.userData.zone = zone;
         m.userData.radius = radius;
         this.group.add(m);
         this.hitboxes.push(m);
         this.parts.push(m);
         return m;
+      }
+
+      addBillboard() {
+        const [w, h] = SPRITE_SIZE[this.type];
+        this.bill = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: SPRITES[this.type][0],
+          transparent: true,
+          alphaTest: 0.22,
+          fog: true,
+          depthWrite: true,
+        }));
+        this.bill.scale.set(w, h, 1);
+        this.bill.center.set(0.5, this.type === "ptera" ? 0.5 : 0.04);
+        this.group.add(this.bill);
+        this._fi = 0;
       }
 
       build() {
@@ -1101,6 +1314,7 @@
         this.part(GEO.box, f, -0.35, 1.2, 0.7, 0.12, 0.12, 0.7, "limb", 0.3);
         this.tail = this.part(GEO.box, f, 0, 1.2, -1.55, 0.18, 0.18, 1.6, "limb", 0.45);
         this.part(GEO.cone, b, 0, 1.55, -0.2, 0.15, 0.7, 0.15, "spine", 0.3);
+        this.addBillboard();
       }
 
       buildTrike() {
@@ -1122,6 +1336,7 @@
         this.legFR = this.part(GEO.cyl, f, -0.7, 0.7, 0.8, 0.28, 1.4, 0.28, "limb", 0.7);
         this.legBL = this.part(GEO.cyl, f, 0.7, 0.7, -0.9, 0.32, 1.4, 0.32, "limb", 0.7);
         this.legBR = this.part(GEO.cyl, f, -0.7, 0.7, -0.9, 0.32, 1.4, 0.32, "limb", 0.7);
+        this.addBillboard();
       }
 
       buildPtera() {
@@ -1137,6 +1352,7 @@
         this.wingR = this.part(GEO.box, w, -2.1, 0.05, 0.1, 4.0, 0.06, 1.1, "limb", 2.2);
         this.part(GEO.box, f, 0, -0.15, -1.0, 0.15, 0.12, 1.1, "limb", 0.4);
         this.part(GEO.box, mat(PAL.rot, 0.9, 0.05), 0, 0.22, -0.1, 0.2, 0.12, 1.0, "spine", 0.45);
+        this.addBillboard();
       }
 
       buildTrex() {
@@ -1167,6 +1383,7 @@
           p.visible = i === 0;
         });
         this.part(GEO.cone, b, 0.9, 4.8, -0.6, 0.2, 1.1, 0.2, "spine", 0.4);
+        this.addBillboard();
       }
 
       reset(x, z, hp, speed) {
@@ -1187,7 +1404,14 @@
         this.group.visible = true;
         this.group.rotation.set(0, Math.PI, 0);
         this.group.position.set(x, terrainHeight(x, z) + 0.05, z);
-        this.group.scale.setScalar(CONFIG.ENEMY_SCALE[this.type] || 2.8);
+        this.group.scale.setScalar(CONFIG.ENEMY_SCALE[this.type] || 1.4);
+        if (this.bill) {
+          this.bill.visible = true;
+          this.bill.material.rotation = 0;
+          this.bill.material.color.setHex(0xffffff);
+          this.bill.material.map = SPRITES[this.type][0];
+          this._fi = 0;
+        }
         for (const p of this.parts) {
           p.visible = true;
           if (p.userData.weakI != null) p.visible = p.userData.weakI === 0;
@@ -1195,26 +1419,39 @@
       }
 
       testHit(point, radius) {
-        const prio = { weak: 0, shield: 0.5, skull: 1, spine: 2, limb: 3, body: 5 };
-        let best = null;
-        let bestP = 99;
-        let bestD = 1e9;
         for (const hb of this.hitboxes) {
-          if (!hb.visible) continue;
+          if (hb.userData.zone !== "weak" || !hb.visible) continue;
           hb.getWorldPosition(this._wp);
-          const sx = Math.max(hb.scale.x, hb.scale.y, hb.scale.z);
-          const r = (hb.userData.radius || 0.5) * Math.max(1, this.group.scale.x * 0.35 + sx * 0.15);
+          const r = (hb.userData.radius || 0.5) * this.group.scale.x;
           const d = point.distanceTo(this._wp);
           if (d < r + radius) {
-            const pr = prio[hb.userData.zone] ?? 4;
-            if (pr < bestP || (pr === bestP && d < bestD)) {
-              bestP = pr;
-              bestD = d;
-              best = { zone: hb.userData.zone, point: this._wp.clone(), mesh: hb };
-            }
+            return { zone: "weak", point: this._wp.clone(), mesh: hb };
           }
         }
-        return best;
+
+        const [w, h] = SPRITE_SIZE[this.type];
+        const local = point.clone();
+        this.group.worldToLocal(local);
+        const footed = this.type !== "ptera";
+        const y0 = footed ? 0 : -h * 0.5;
+        const y1 = footed ? h : h * 0.5;
+        const hw = w * 0.38;
+        if (Math.abs(local.x) > hw + radius) return null;
+        if (local.y < y0 - radius || local.y > y1 + radius) return null;
+        if (Math.abs(local.z) > 2.4 + radius) return null;
+
+        const t = clamp((local.y - y0) / Math.max(0.01, y1 - y0), 0, 1);
+        let zone = "body";
+        if (t < 0.26) zone = "limb";
+        else if (t > 0.74) zone = "skull";
+        else if (t > 0.52 && t < 0.74) zone = "spine";
+        if (this.type === "trike") {
+          if (t > 0.48 && t < 0.8) zone = "shield";
+          if (t > 0.8) zone = "skull";
+        }
+        this.group.getWorldPosition(this._wp);
+        this._wp.y += (footed ? h * t : local.y) * this.group.scale.x;
+        return { zone, point: this._wp.clone(), mesh: this.bill };
       }
 
       takeDamage(zone, amount, dir, pierce) {
@@ -1260,9 +1497,9 @@
       update(dt, game) {
         if (this.dying) {
           this.dieT += dt;
-          this.group.rotation.x += this.dieSpin.x * dt * 1.4;
-          this.group.rotation.z += this.dieSpin.z * dt * 1.2;
+          this.group.rotation.z += dt * 1.6;
           this.group.position.y -= dt * 2.8;
+          if (this.bill) this.bill.material.rotation = this.dieT * 0.8;
           if (this.dieT > 2.2) {
             this.group.visible = false;
             this.dying = false;
@@ -1274,6 +1511,11 @@
 
         this.age += dt;
         const t = this.age + this.seed;
+        const fi = Math.floor(this.age * 7) % 2;
+        if (this.bill && fi !== this._fi) {
+          this._fi = fi;
+          this.bill.material.map = SPRITES[this.type][fi];
+        }
 
         if (this.type === "raptor") {
           const zig = Math.sin(t * 2.15) * 11;
@@ -1327,16 +1569,9 @@
         }
 
         const dist = this.group.position.distanceTo(game.player.camera.position);
-        const far = dist > 280;
-        if (far !== this.lodFar) {
-          this.lodFar = far;
-          for (let i = 6; i < this.parts.length; i++) {
-            if (this.parts[i].userData.zone === "weak") continue;
-            this.parts[i].visible = !far || this.parts[i] === this.head || this.parts[i] === this.body;
-          }
-          if (this.type === "trex") {
-            this.weakPts.forEach((p, i) => { p.visible = !this.dying && i === this.weakIndex; });
-          }
+        this.lodFar = dist > 280;
+        if (this.type === "trex") {
+          this.weakPts.forEach((p, i) => { p.visible = !this.dying && i === this.weakIndex; });
         }
 
         if (this.group.position.z <= CONFIG.SHELTER_Z) {
@@ -1349,6 +1584,7 @@
       }
 
       setThermal(on) {
+        if (this.bill) this.bill.material.color.setHex(on ? 0xff6622 : 0xffffff);
         for (const p of this.parts) {
           if (p.material && p.material.emissive) {
             if (on) {
@@ -1360,6 +1596,7 @@
       }
 
       clearThermal() {
+        if (this.bill) this.bill.material.color.setHex(0xffffff);
         for (const p of this.parts) {
           if (p.userData.zone === "weak") continue;
           if (p.material && p.material.emissive && p.userData.zone !== "skull") {
@@ -1514,6 +1751,128 @@
           if (this.boltT <= 0) this.boltReady = true;
         }
         this.recoil *= Math.pow(0.04, dt);
+      }
+    }
+
+    // =====================================================================
+    // CS-style first-person viewmodel (AWP-like bolt rifle + hands)
+    // =====================================================================
+    class Viewmodel {
+      constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.03, 6);
+        this.root = new THREE.Group();
+        this.scene.add(this.root);
+
+        const key = new THREE.DirectionalLight(0xffd2a8, 2.4);
+        key.position.set(-0.5, 0.9, 0.4);
+        this.scene.add(key);
+        this.scene.add(new THREE.AmbientLight(0x8899aa, 0.55));
+        const rim = new THREE.DirectionalLight(0x88aacc, 0.85);
+        rim.position.set(0.8, 0.15, -0.2);
+        this.scene.add(rim);
+
+        this.kick = 0;
+        this.lagY = 0;
+        this.lagP = 0;
+        this.build();
+      }
+
+      add(geo, material, x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0, parent = this.root) {
+        const m = new THREE.Mesh(geo, material);
+        m.position.set(x, y, z);
+        m.scale.set(sx, sy, sz);
+        m.rotation.set(rx, ry, rz);
+        parent.add(m);
+        return m;
+      }
+
+      build() {
+        const metal = mat(0x2c302a, 0.32, 0.82);
+        const dark = mat(0x121410, 0.45, 0.55);
+        const wood = mat(0x4a3222, 0.88, 0.06);
+        const brass = mat(0x9a7a40, 0.38, 0.72, 0x3a2808, 0.2);
+        const glass = mat(0x152018, 0.08, 0.95, 0x88bb44, 0.45);
+        const glove = mat(0x1a1612, 0.9, 0.04);
+        const sleeve = mat(0x2a241c, 0.92, 0.03);
+
+        this.add(GEO.box, metal, 0, 0, 0, 0.075, 0.095, 0.44);
+        this.add(GEO.box, dark, 0, 0.01, -0.12, 0.06, 0.07, 0.18);
+        this.add(GEO.cyl, dark, 0, 0.012, -0.42, 0.013, 0.58, 0.013, Math.PI / 2, 0, 0);
+        this.add(GEO.box, dark, 0, 0.012, -0.72, 0.032, 0.028, 0.07);
+        this.add(GEO.box, dark, 0, -0.09, 0.04, 0.045, 0.13, 0.085);
+        this.add(GEO.box, wood, 0, -0.015, 0.34, 0.055, 0.085, 0.24);
+        this.add(GEO.box, wood, 0, 0.03, 0.46, 0.045, 0.13, 0.09);
+        this.add(GEO.cyl, dark, 0, 0.085, -0.05, 0.03, 0.24, 0.03, Math.PI / 2, 0, 0);
+        this.add(GEO.cyl, glass, 0, 0.085, -0.175, 0.026, 0.018, 0.026, Math.PI / 2, 0, 0);
+        this.add(GEO.cyl, brass, 0, 0.085, 0.085, 0.034, 0.028, 0.034, Math.PI / 2, 0, 0);
+        this.add(GEO.box, dark, 0, 0.055, 0.12, 0.04, 0.04, 0.06);
+
+        this.boltGrp = new THREE.Group();
+        this.boltGrp.position.set(0.038, 0.028, 0.05);
+        this.root.add(this.boltGrp);
+        this.add(GEO.cyl, brass, 0, 0, 0, 0.008, 0.08, 0.008, 0, 0, Math.PI / 2, this.boltGrp);
+        this.add(GEO.cyl, brass, 0.045, 0.01, 0, 0.007, 0.055, 0.007, 0, 0, Math.PI / 2, this.boltGrp);
+        this.add(GEO.sph, brass, 0.07, 0.018, 0, 0.012, 0.012, 0.012, 0, 0, 0, this.boltGrp);
+
+        this.handR = new THREE.Group();
+        this.handR.position.set(0.05, -0.085, 0.1);
+        this.handR.rotation.set(-0.4, 0.15, 0.5);
+        this.root.add(this.handR);
+        this.add(GEO.box, glove, 0, 0, 0, 0.055, 0.04, 0.08, 0, 0, 0, this.handR);
+        this.add(GEO.box, glove, 0.01, 0.01, -0.055, 0.018, 0.016, 0.05, 0.4, 0, 0, this.handR);
+        this.add(GEO.box, glove, -0.012, 0.008, -0.05, 0.016, 0.014, 0.045, 0.3, 0, 0, this.handR);
+        this.add(GEO.box, sleeve, 0.02, -0.02, 0.08, 0.07, 0.055, 0.14, 0.2, 0, 0, this.handR);
+
+        this.handL = new THREE.Group();
+        this.handL.position.set(-0.02, -0.04, -0.22);
+        this.handL.rotation.set(0.2, 0.4, -0.35);
+        this.root.add(this.handL);
+        this.add(GEO.box, glove, 0, 0, 0, 0.05, 0.038, 0.07, 0, 0, 0, this.handL);
+        this.add(GEO.box, glove, 0.02, 0.005, -0.045, 0.016, 0.014, 0.04, 0.35, 0, 0, this.handL);
+        this.add(GEO.box, sleeve, -0.03, -0.01, 0.07, 0.065, 0.05, 0.16, 0.15, 0.2, 0, this.handL);
+      }
+
+      onFire() { this.kick = 1; }
+
+      update(dt, player, time) {
+        this.kick *= Math.pow(0.0008, dt);
+        this.lagY = lerp(this.lagY, player.yaw, 1 - Math.exp(-dt * 7));
+        this.lagP = lerp(this.lagP, player.pitch, 1 - Math.exp(-dt * 7));
+        const ads = player.scopeMix;
+        const dy = (player.yaw - this.lagY) * 0.55;
+        const dp = (player.pitch - this.lagP) * 0.55;
+        const idleX = Math.sin(time * 1.05) * 0.007 * (1 - ads);
+        const idleY = Math.sin(time * 1.35) * 0.009 * (1 - ads);
+
+        this.root.position.set(
+          0.26 - dy + idleX + ads * 0.55,
+          -0.30 + dp + idleY - ads * 0.62 - this.kick * 0.04,
+          -0.58 + ads * 0.12 + this.kick * 0.06
+        );
+        this.root.rotation.set(
+          0.10 + this.kick * 0.22 + ads * 0.15,
+          0.42 + ads * 0.35,
+          0.07 - this.kick * 0.12
+        );
+
+        const cycling = !player.rifle.boltReady;
+        const u = cycling ? 1 - clamp(player.rifle.boltT / CONFIG.BOLT_CYCLE_TIME, 0, 1) : 0;
+        let pull = 0, lift = 0;
+        if (u > 0.18 && u < 0.85) {
+          const b = (u - 0.18) / 0.67;
+          pull = b < 0.5 ? b * 2 : (1 - b) * 2;
+          lift = pull;
+        }
+        this.boltGrp.position.z = 0.05 + pull * 0.09;
+        this.boltGrp.rotation.z = lift * 0.9;
+        this.handR.position.z = 0.1 + pull * 0.08;
+        this.handR.rotation.z = 0.5 + lift * 0.4;
+      }
+
+      resize() {
+        this.camera.aspect = innerWidth / innerHeight;
+        this.camera.updateProjectionMatrix();
       }
     }
 
@@ -1859,6 +2218,7 @@
 
         this.audio = new AudioSynth();
         initGeo();
+        initSprites();
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, CONFIG.PIXEL_RATIO_CAP));
@@ -1879,6 +2239,7 @@
         this.camera.rotation.order = "YXZ";
 
         this.player = new Player(this.camera);
+        this.viewmodel = new Viewmodel();
 
         const sun = new THREE.DirectionalLight(0xff8a3a, 1.15);
         sun.position.set(-70, 55, 90);
@@ -1985,6 +2346,7 @@
         this.renderer.setSize(w, h);
         this.composer.setSize(w, h);
         this.bloom.setSize(w, h);
+        this.viewmodel.resize();
       }
 
       start() {
@@ -2063,6 +2425,7 @@
         if (!this.player.rifle.canFire()) return;
         const { origin, dir } = this.player.muzzlePoint();
         this.player.rifle.fire();
+        this.viewmodel.onFire();
         this.shots++;
         this.audio.shot();
         this.vfx.muzzleFlash(origin);
@@ -2273,6 +2636,7 @@
 
         const hold = !!(this.keys.ShiftLeft || this.keys.ShiftRight);
         this.player.update(dt, hold);
+        this.viewmodel.update(dt, this.player, this.time);
         if (this.player.holding && this.player.stamina < 0.28) {
           this.heartT -= dt;
           if (this.heartT <= 0) { this.audio.heartbeat(); this.heartT = 0.7; }
@@ -2330,6 +2694,13 @@
         this.fxPass.uniforms.scopeV.value = this.player.scopeMix;
         this.fxPass.uniforms.chroma.value = 0.0016 + this.player.scopeMix * 0.0035;
         this.composer.render();
+        const showGun = this.state === "PLAY" && !this.killcam && this.player.scopeMix < 0.9;
+        if (showGun) {
+          this.renderer.autoClear = false;
+          this.renderer.clearDepth();
+          this.renderer.render(this.viewmodel.scene, this.viewmodel.camera);
+          this.renderer.autoClear = true;
+        }
       }
     }
 
