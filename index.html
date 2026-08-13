@@ -116,28 +116,31 @@
 
     #hud.visible { opacity: 1; }
 
+    #ammo {
+      font-size: 48px;
+      color: var(--amber);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.08em;
+    }
+
+    #ammo.low { color: #d44; }
+
+    .hud-line {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #c8d4b0;
+      opacity: 0.88;
+      letter-spacing: 0.18em;
+    }
+
     #hud-br {
       position: absolute;
       right: 28px;
       bottom: 24px;
       text-align: right;
       letter-spacing: 0.14em;
-      text-shadow: 0 2px 8px #000;
-    }
-
-    #ammo {
-      font-size: 42px;
-      color: var(--amber);
-      line-height: 1;
-    }
-
-    #ammo.low { color: #d44; }
-
-    .hud-line {
-      margin-top: 6px;
-      font-size: 12px;
-      color: #c8d4b0;
-      opacity: 0.9;
+      text-shadow: 0 2px 10px #000, 0 0 20px rgba(0,0,0,0.6);
     }
 
     #hud-tl {
@@ -145,10 +148,72 @@
       left: 24px;
       top: 20px;
       font-size: 12px;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.2em;
       color: #c9d6b4;
-      text-shadow: 0 2px 8px #000;
+      text-shadow: 0 2px 10px #000;
     }
+
+    .scope-ring {
+      position: absolute;
+      inset: -8%;
+      background:
+        radial-gradient(circle at 50% 50%,
+          transparent 26%,
+          rgba(4, 8, 4, 0.12) 31%,
+          rgba(2, 4, 2, 0.82) 40%,
+          #010201 47%);
+    }
+
+    .mildot .arm {
+      position: absolute;
+      background: rgba(210, 230, 170, 0.78);
+      box-shadow: 0 0 2px rgba(0,0,0,0.9);
+    }
+
+    #hit-flash {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at 50% 45%, rgba(180, 40, 30, 0.28), transparent 55%);
+      transition: opacity 0.08s;
+      z-index: 9;
+    }
+    #hit-flash.on { opacity: 1; }
+
+    #touch-ui {
+      display: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11;
+    }
+    body.mobile #hud.visible #touch-ui { display: block; }
+    body.mobile #hud.visible #touch-ui .touch-btn { pointer-events: auto; }
+
+    .touch-btn {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1px solid rgba(224, 162, 58, 0.55);
+      background: rgba(10, 8, 6, 0.5);
+      color: var(--amber);
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .touch-btn.active { background: rgba(180, 90, 20, 0.55); }
+    #btn-fire { right: max(16px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom)); width: 88px; height: 88px; font-size: 13px; }
+    #btn-scope { right: max(22px, env(safe-area-inset-right)); bottom: calc(122px + env(safe-area-inset-bottom)); }
+    #btn-breath { left: max(16px, env(safe-area-inset-left)); bottom: max(22px, env(safe-area-inset-bottom)); }
+    body.mobile #hud-br { bottom: calc(160px + env(safe-area-inset-bottom)); }
 
     #wave-banner {
       position: absolute;
@@ -206,17 +271,6 @@
 
     #scope.on { opacity: 1; }
 
-    .scope-ring {
-      position: absolute;
-      inset: -8%;
-      background:
-        radial-gradient(circle at 50% 50%,
-          transparent 27%,
-          rgba(4, 6, 4, 0.15) 32%,
-          rgba(2, 4, 2, 0.88) 41%,
-          #020302 48%);
-    }
-
     .mildot {
       position: absolute;
       left: 50%;
@@ -224,12 +278,6 @@
       width: 420px;
       height: 420px;
       margin: -210px 0 0 -210px;
-    }
-
-    .mildot .arm {
-      position: absolute;
-      background: rgba(210, 230, 170, 0.72);
-      box-shadow: 0 0 1px #000;
     }
 
     .mildot .h { left: 0; top: 50%; width: 100%; height: 1px; }
@@ -362,10 +410,13 @@
           <div class="pip" id="pip0"></div>
           <div class="pip" id="pip1"></div>
           <div class="pip" id="pip2"></div>
+          <div class="pip" id="pip3"></div>
+          <div class="pip" id="pip4"></div>
         </div>
       </div>
       <div id="wave-banner"></div>
       <div id="killcam-tag">ELIMINAÇÃO · CÂMERA LENTA</div>
+      <div id="hit-flash"></div>
       <div id="crosshair"></div>
       <div id="stamina-wrap"><div id="stamina-fill"></div></div>
       <div id="scope">
@@ -378,10 +429,15 @@
         <div id="scope-range">— m</div>
       </div>
       <div id="hud-br">
-        <div id="ammo">08</div>
+        <div id="ammo">14</div>
         <div class="hud-line" id="wind-label">VENTO  +0.0 m/s</div>
         <div class="hud-line" id="dist-label">DIST  —</div>
         <div class="hud-line" id="score-label">PONTOS  0</div>
+      </div>
+      <div id="touch-ui">
+        <button type="button" class="touch-btn" id="btn-breath">PULMÃO</button>
+        <button type="button" class="touch-btn" id="btn-scope">LUNETA</button>
+        <button type="button" class="touch-btn" id="btn-fire">TIRO</button>
       </div>
       <div id="click-capture" class="hidden">CLIQUE NO VALE PARA JOGAR</div>
     </div>
@@ -446,57 +502,58 @@
       SCOPE_FOV_MAX_ZOOM: 6,
       YAW_LIMIT: (55 * Math.PI) / 180,
       PITCH_LIMIT: (28 * Math.PI) / 180,
-      LOOK_SENS: 0.00205,
-      SCOPE_SENS: 0.00042,
+      LOOK_SENS: 0.00215,
+      SCOPE_SENS: 0.00048,
 
-      BREATH_HOLD_DURATION: 4,
+      BREATH_HOLD_DURATION: 5.5,
       SWAY_PENALTY_DURATION: 2,
-      SWAY_AMP_YAW: 0.0072,
-      SWAY_AMP_PITCH: 0.0054,
+      SWAY_AMP_YAW: 0.0047,
+      SWAY_AMP_PITCH: 0.0035,
       SWAY_FREQ_X: 1.07,
       SWAY_FREQ_Y: 1.41,
 
       GRAVITY: 9.81,
       MUZZLE_VELOCITY: 750,
       WIND_INFLUENCE: 1.0,
-      BOLT_CYCLE_TIME: 1.22,
-      BULLET_RADIUS: 0.22,
-      RIFLE_DAMAGE: 34,
+      BOLT_CYCLE_TIME: 0.85,
+      BULLET_RADIUS: 0.28,
+      RIFLE_DAMAGE: 48,
 
-      STARTING_AMMO: 8,
-      WAVE_AMMO_BASE: 8,
-      SHELTER_LEAKS_TO_LOSE: 3,
+      STARTING_AMMO: 14,
+      WAVE_AMMO_BASE: 14,
+      SHELTER_LEAKS_TO_LOSE: 5,
       SHELTER_Z: 32,
       HEADSHOT_DAMAGE_MULT: 3,
       SPINE_DAMAGE_MULT: 2,
       LIMB_SLOW_MULT: 0.5,
-      KILLCAM_MIN_DISTANCE: 140,
+      KILLCAM_MIN_DISTANCE: 120,
       KILLCAM_TIME_SCALE: 0.15,
       MAX_ACTIVE_ENEMIES: 40,
       T_REX_EVERY_N_WAVES: 5,
       HEADSHOT_AMMO_REFUND: 1,
+      TRIKE_SHIELD_DOT: 0.55,
 
       PIXEL_RATIO_CAP: 1.5,
       SHADOW_MAP_SIZE: 2048,
-      BLOOM_STRENGTH: 0.82,
-      BLOOM_RADIUS: 0.55,
-      BLOOM_THRESHOLD: 0.72,
+      BLOOM_STRENGTH: 0.7,
+      BLOOM_RADIUS: 0.5,
+      BLOOM_THRESHOLD: 0.78,
       USE_SSAO: false,
 
-      SPAWN_Z_MIN: 70,
-      SPAWN_Z_MAX: 140,
-      SPAWN_X_RANGE: 32,
-      ENEMY_SCALE: { raptor: 3.4, trike: 3.0, ptera: 3.6, trex: 3.8 },
+      SPAWN_Z_MIN: 90,
+      SPAWN_Z_MAX: 160,
+      SPAWN_X_RANGE: 28,
+      ENEMY_SCALE: { raptor: 3.8, trike: 3.4, ptera: 4.0, trex: 4.2 },
       MAX_BULLETS: 10,
 
-      RAPTOR_HP: 32,
-      RAPTOR_SPEED: 10.5,
-      TRIKE_HP: 220,
-      TRIKE_SPEED: 5.4,
-      PTERA_HP: 40,
-      PTERA_SPEED: 14,
-      TREX_HP: 900,
-      TREX_SPEED: 6.2,
+      RAPTOR_HP: 24,
+      RAPTOR_SPEED: 7,
+      TRIKE_HP: 140,
+      TRIKE_SPEED: 4,
+      PTERA_HP: 28,
+      PTERA_SPEED: 10,
+      TREX_HP: 550,
+      TREX_SPEED: 4.5,
     };
 
     const PAL = {
@@ -512,6 +569,13 @@
       sick: 0x6f8f2e,
       fog: 0x3a1a28,
     };
+
+    function isMobileDevice() {
+      const touch = (navigator.maxTouchPoints || 0) > 0;
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const noHover = window.matchMedia("(hover: none)").matches;
+      return (coarse && noHover) || (touch && noHover);
+    }
 
     // =====================================================================
     // Math / noise
@@ -1105,7 +1169,7 @@
         const f = mat(PAL.flesh, 0.9, 0.04, 0x112200, 0.15);
         const fd = mat(PAL.fleshDark, 0.95, 0.05);
         const b = mat(PAL.bone, 0.45, 0.12);
-        const e = mat(PAL.eye, 0.25, 0.05, PAL.eye, 6.5);
+        const e = mat(PAL.eye, 0.2, 0.05, PAL.eye, 9);
         this.body = this.part(GEO.box, f, 0, 1.15, 0, 0.7, 0.75, 2.1, "body", 1.15);
         this.part(GEO.box, fd, 0, 1.35, -0.15, 0.55, 0.2, 1.6, "spine", 0.7);
         this.part(GEO.box, b, 0.22, 1.25, 0.1, 0.08, 0.35, 1.3, "spine", 0.4);
@@ -1125,7 +1189,7 @@
         const f = mat(PAL.rot, 0.88, 0.06, 0x221100, 0.1);
         const plate = mat(PAL.plate, 0.55, 0.22);
         const b = mat(PAL.boneStain, 0.5, 0.15);
-        const e = mat(0xff6622, 0.3, 0.05, 0xff8844, 5.5);
+        const e = mat(0xff8844, 0.25, 0.05, 0xffaa55, 8);
         this.body = this.part(GEO.box, f, 0, 1.7, 0, 1.8, 1.6, 2.6, "body", 2.0);
         this.part(GEO.box, f, 0, 1.9, -1.6, 0.7, 0.5, 1.4, "body", 1.0);
         this.shield = this.part(GEO.box, plate, 0, 2.35, 1.55, 2.4, 2.1, 0.28, "shield", 1.8);
@@ -1146,7 +1210,7 @@
         const f = mat(0x3a4a28, 0.86, 0.05, 0x1a3300, 0.2);
         const w = mat(0x2a2818, 0.92, 0.04);
         const b = mat(PAL.bone, 0.4, 0.1);
-        const e = mat(PAL.eye, 0.25, 0.05, PAL.eye, 7);
+        const e = mat(PAL.eye, 0.2, 0.05, PAL.eye, 10);
         this.body = this.part(GEO.box, f, 0, 0, 0, 0.55, 0.45, 1.6, "body", 1.0);
         this.head = this.part(GEO.box, f, 0, 0.15, 1.05, 0.32, 0.28, 0.7, "skull", 0.55);
         this.part(GEO.box, b, 0, 0.45, 1.15, 0.08, 0.55, 0.35, "skull", 0.35);
@@ -1161,7 +1225,7 @@
         const f = mat(0x3a4020, 0.9, 0.05, 0x221800, 0.18);
         const fd = mat(0x2a2014, 0.93, 0.06);
         const b = mat(PAL.boneStain, 0.48, 0.14);
-        const e = mat(0xff2200, 0.25, 0.05, 0xff4411, 6);
+        const e = mat(0xff3311, 0.2, 0.05, 0xff5522, 9);
         this.body = this.part(GEO.box, f, 0, 4.2, 0, 2.4, 2.8, 4.2, "body", 3.2);
         this.part(GEO.box, fd, 0, 4.6, -0.2, 1.4, 0.4, 3.2, "spine", 1.6);
         this.head = this.part(GEO.box, f, 0, 5.8, 2.8, 1.8, 1.6, 2.4, "skull", 2.0);
@@ -1239,7 +1303,13 @@
         if (!this.alive || this.dying) return { killed: false, head: false, blocked: false };
 
         if (this.type === "trike" && zone === "shield" && !pierce) {
-          return { killed: false, head: false, blocked: true };
+          // Only the frontal cone blocks; flanks/rear count as body
+          const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(this.group.quaternion);
+          const align = -dir.clone().normalize().dot(fwd);
+          if (align > CONFIG.TRIKE_SHIELD_DOT) {
+            return { killed: false, head: false, blocked: true };
+          }
+          zone = "body";
         }
 
         if (this.type === "trex") {
@@ -1249,11 +1319,11 @@
               active.visible = false;
               this.weakIndex++;
               if (this.weakIndex < this.weakPts.length) this.weakPts[this.weakIndex].visible = true;
-              amount = 200;
+              amount = 220;
               if (this.weakIndex >= this.weakPts.length) this.hp = 0;
             }
           } else {
-            amount *= 0.12;
+            amount *= 0.2;
           }
         }
 
@@ -1422,18 +1492,21 @@
         this.queue = [];
         this.waitingBoss = n % CONFIG.T_REX_EVERY_N_WAVES === 0;
         this.bossQueued = false;
-        const packs = 1 + Math.floor(n / 2);
+        // Early waves: one small pack; scale slowly afterward
+        const packs = n <= 2 ? 1 : 1 + Math.floor((n - 2) / 2);
         for (let p = 0; p < packs; p++) {
-          const count = clamp(5 + (n > 2 ? 1 : 0) + Math.floor(Math.random() * 3), 5, 8);
+          const count = n <= 2
+            ? 4 + Math.floor(Math.random() * 2)
+            : clamp(4 + Math.floor(n / 3) + Math.floor(Math.random() * 2), 4, 7);
           for (let i = 0; i < count; i++) this.queue.push("raptor");
         }
-        if (n >= 2) {
-          const tri = 1 + Math.floor((n - 2) / 2);
-          for (let i = 0; i < Math.min(tri, 4); i++) this.queue.push("trike");
-        }
         if (n >= 3) {
-          const pt = 1 + Math.floor((n - 3) / 2);
-          for (let i = 0; i < Math.min(pt, 5); i++) this.queue.push("ptera");
+          const tri = 1 + Math.floor((n - 3) / 3);
+          for (let i = 0; i < Math.min(tri, 3); i++) this.queue.push("trike");
+        }
+        if (n >= 4) {
+          const pt = 1 + Math.floor((n - 4) / 3);
+          for (let i = 0; i < Math.min(pt, 4); i++) this.queue.push("ptera");
         }
         this.toSpawn = this.queue.length + (this.waitingBoss ? 1 : 0);
         this.spawned = 0;
@@ -1449,10 +1522,10 @@
       }
 
       stats(type, wave) {
-        if (type === "raptor") return { hp: CONFIG.RAPTOR_HP + wave * 2, speed: CONFIG.RAPTOR_SPEED + wave * 0.25 };
-        if (type === "trike") return { hp: CONFIG.TRIKE_HP + wave * 12, speed: CONFIG.TRIKE_SPEED };
-        if (type === "ptera") return { hp: CONFIG.PTERA_HP + wave * 3, speed: CONFIG.PTERA_SPEED + wave * 0.2 };
-        return { hp: CONFIG.TREX_HP + wave * 40, speed: CONFIG.TREX_SPEED };
+        if (type === "raptor") return { hp: CONFIG.RAPTOR_HP + wave * 1.5, speed: CONFIG.RAPTOR_SPEED + wave * 0.15 };
+        if (type === "trike") return { hp: CONFIG.TRIKE_HP + wave * 8, speed: CONFIG.TRIKE_SPEED };
+        if (type === "ptera") return { hp: CONFIG.PTERA_HP + wave * 2, speed: CONFIG.PTERA_SPEED + wave * 0.12 };
+        return { hp: CONFIG.TREX_HP + wave * 25, speed: CONFIG.TREX_SPEED };
       }
 
       spawnOne(type) {
@@ -1474,7 +1547,7 @@
         const liveCount = this.active.filter((e) => e.alive).length;
         if (this.queue.length && this.timer <= 0 && liveCount < CONFIG.MAX_ACTIVE_ENEMIES) {
           const type = this.queue.shift();
-          if (this.spawnOne(type)) this.timer = type === "raptor" ? 0.28 : 1.1;
+          if (this.spawnOne(type)) this.timer = type === "raptor" ? 0.45 : 1.35;
           else {
             this.queue.unshift(type);
             this.timer = 0.4;
@@ -1728,7 +1801,7 @@
       }
 
       const buses = [
-        [38, 210], [-44, 340], [22, 505], [-30, 125],
+        [38, 210], [-44, 340], [22, 505], [-30, 125], [50, 280], [-55, 450],
       ];
       for (const [bx, bz] of buses) {
         const by = terrainHeight(bx, bz) + 1.2;
@@ -1736,6 +1809,22 @@
         body.rotation.y = rand(-0.4, 0.4);
         body.rotation.z = rand(-0.12, 0.08);
         boxProp(bx, by + 1.4, bz - 2, 2.8, 1.1, 0.12, 0x1a3040, 0.3, 0.4);
+      }
+
+      // Excavation crates / fencing
+      for (let i = 0; i < 14; i++) {
+        const x = rand(-70, 70);
+        const z = rand(60, 380);
+        if (Math.abs(x) < 12) continue;
+        const y = terrainHeight(x, z);
+        boxProp(x, y + 0.55, z, rand(1.2, 2.2), rand(0.8, 1.4), rand(1.0, 1.8), 0x5a4030, 0.9, 0.05);
+      }
+      for (let i = 0; i < 18; i++) {
+        const x = rand(-90, 90);
+        const z = rand(70, 520);
+        const y = terrainHeight(x, z);
+        const post = boxProp(x, y + 1.1, z, 0.1, 2.2, 0.1, 0x3a2a18);
+        post.rotation.z = rand(-0.1, 0.1);
       }
 
       for (let i = 0; i < 12; i++) {
@@ -1810,9 +1899,9 @@
       uniforms: {
         tDiffuse: { value: null },
         time: { value: 0 },
-        grain: { value: 0.11 },
-        vignette: { value: 0.42 },
-        distortion: { value: 0.085 },
+        grain: { value: 0.085 },
+        vignette: { value: 0.38 },
+        distortion: { value: 0.07 },
         chroma: { value: 0.0018 },
         radial: { value: 0 },
         scopeV: { value: 0 },
@@ -1854,6 +1943,106 @@
         }`,
     };
 
+
+    // =====================================================================
+    // CS-style first-person viewmodel (hides when scoped)
+    // =====================================================================
+    class Viewmodel {
+      constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.03, 6);
+        this.root = new THREE.Group();
+        this.scene.add(this.root);
+        const key = new THREE.DirectionalLight(0xffd2a8, 2.2);
+        key.position.set(-0.5, 0.9, 0.4);
+        this.scene.add(key);
+        this.scene.add(new THREE.AmbientLight(0x8899aa, 0.55));
+        this.kick = 0;
+        this.lagY = 0;
+        this.lagP = 0;
+        this.build();
+      }
+
+      add(geo, material, x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0, parent = this.root) {
+        const m = new THREE.Mesh(geo, material);
+        m.position.set(x, y, z);
+        m.scale.set(sx, sy, sz);
+        m.rotation.set(rx, ry, rz);
+        parent.add(m);
+        return m;
+      }
+
+      build() {
+        const metal = mat(0x2c302a, 0.32, 0.82);
+        const dark = mat(0x121410, 0.45, 0.55);
+        const wood = mat(0x4a3222, 0.88, 0.06);
+        const brass = mat(0x9a7a40, 0.38, 0.72, 0x3a2808, 0.2);
+        const glass = mat(0x152018, 0.08, 0.95, 0x88bb44, 0.4);
+        const glove = mat(0x1a1612, 0.9, 0.04);
+        this.add(GEO.box, metal, 0, 0, 0, 0.075, 0.095, 0.44);
+        this.add(GEO.cyl, dark, 0, 0.012, -0.42, 0.013, 0.58, 0.013, Math.PI / 2, 0, 0);
+        this.add(GEO.box, dark, 0, -0.09, 0.04, 0.045, 0.13, 0.085);
+        this.add(GEO.box, wood, 0, -0.015, 0.34, 0.055, 0.085, 0.24);
+        this.add(GEO.box, wood, 0, 0.03, 0.46, 0.045, 0.13, 0.09);
+        this.add(GEO.cyl, dark, 0, 0.085, -0.05, 0.03, 0.24, 0.03, Math.PI / 2, 0, 0);
+        this.add(GEO.cyl, glass, 0, 0.085, -0.175, 0.026, 0.018, 0.026, Math.PI / 2, 0, 0);
+        this.add(GEO.cyl, brass, 0, 0.085, 0.085, 0.034, 0.028, 0.034, Math.PI / 2, 0, 0);
+        this.boltGrp = new THREE.Group();
+        this.boltGrp.position.set(0.038, 0.028, 0.05);
+        this.root.add(this.boltGrp);
+        this.add(GEO.cyl, brass, 0, 0, 0, 0.008, 0.08, 0.008, 0, 0, Math.PI / 2, this.boltGrp);
+        this.add(GEO.sph, brass, 0.07, 0.018, 0, 0.012, 0.012, 0.012, 0, 0, 0, this.boltGrp);
+        this.handR = new THREE.Group();
+        this.handR.position.set(0.05, -0.085, 0.1);
+        this.handR.rotation.set(-0.4, 0.15, 0.5);
+        this.root.add(this.handR);
+        this.add(GEO.box, glove, 0, 0, 0, 0.055, 0.04, 0.08, 0, 0, 0, this.handR);
+        this.handL = new THREE.Group();
+        this.handL.position.set(-0.02, -0.04, -0.22);
+        this.handL.rotation.set(0.2, 0.4, -0.35);
+        this.root.add(this.handL);
+        this.add(GEO.box, glove, 0, 0, 0, 0.05, 0.038, 0.07, 0, 0, 0, this.handL);
+      }
+
+      onFire() { this.kick = 1; }
+
+      update(dt, player, time) {
+        this.kick *= Math.pow(0.0008, dt);
+        this.lagY = lerp(this.lagY, player.yaw, 1 - Math.exp(-dt * 7));
+        this.lagP = lerp(this.lagP, player.pitch, 1 - Math.exp(-dt * 7));
+        const ads = player.scopeMix;
+        const dy = (player.yaw - this.lagY) * 0.55;
+        const dp = (player.pitch - this.lagP) * 0.55;
+        const idleX = Math.sin(time * 1.05) * 0.007 * (1 - ads);
+        const idleY = Math.sin(time * 1.35) * 0.009 * (1 - ads);
+        this.root.position.set(
+          0.26 - dy + idleX + ads * 0.55,
+          -0.30 + dp + idleY - ads * 0.62 - this.kick * 0.04,
+          -0.58 + ads * 0.12 + this.kick * 0.06
+        );
+        this.root.rotation.set(
+          0.10 + this.kick * 0.22 + ads * 0.15,
+          0.42 + ads * 0.35,
+          0.07 - this.kick * 0.12
+        );
+        const cycling = !player.rifle.boltReady;
+        const u = cycling ? 1 - clamp(player.rifle.boltT / CONFIG.BOLT_CYCLE_TIME, 0, 1) : 0;
+        let pull = 0;
+        if (u > 0.18 && u < 0.85) {
+          const b = (u - 0.18) / 0.67;
+          pull = b < 0.5 ? b * 2 : (1 - b) * 2;
+        }
+        this.boltGrp.position.z = 0.05 + pull * 0.09;
+        this.boltGrp.rotation.z = pull * 0.9;
+        this.handR.position.z = 0.1 + pull * 0.08;
+      }
+
+      resize() {
+        this.camera.aspect = innerWidth / innerHeight;
+        this.camera.updateProjectionMatrix();
+      }
+    }
+
     // =====================================================================
     // Game
     // =====================================================================
@@ -1876,16 +2065,20 @@
         this.pointerLocked = false;
         this.wantLock = false;
         this.heartT = 0;
+        this.touchBreath = false;
+        this.hitFlashT = 0;
+        this.mobile = isMobileDevice();
+        if (this.mobile) document.body.classList.add("mobile");
 
         this.audio = new AudioSynth();
         initGeo();
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, CONFIG.PIXEL_RATIO_CAP));
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.mobile ? 1.15 : CONFIG.PIXEL_RATIO_CAP));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.05;
+        this.renderer.toneMappingExposure = 1.12;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.prepend(this.renderer.domElement);
@@ -1899,6 +2092,7 @@
         this.camera.rotation.order = "YXZ";
 
         this.player = new Player(this.camera);
+        this.viewmodel = new Viewmodel();
 
         const sun = new THREE.DirectionalLight(0xff8a3a, 1.15);
         sun.position.set(-70, 55, 90);
@@ -1977,10 +2171,12 @@
         });
         window.addEventListener("keyup", (e) => { this.keys[e.code] = false; });
         window.addEventListener("mousemove", (e) => {
+          if (this.mobile) return;
           if (this.state !== "PLAY" || !this.pointerLocked || this.killcam) return;
           this.player.addLook(e.movementX, e.movementY);
         });
         window.addEventListener("mousedown", (e) => {
+          if (this.mobile) return;
           if (this.state !== "PLAY" || this.killcam) return;
           // Ignore clicks on UI overlays/buttons
           if (e.target && e.target.closest && e.target.closest(".overlay, button, .up-card")) return;
@@ -2009,6 +2205,51 @@
           document.getElementById("click-capture").classList.remove("hidden");
         });
         window.addEventListener("resize", () => this.resize());
+
+        // Mobile on-screen controls (desktop keeps pointer-lock FPS)
+        const fireBtn = document.getElementById("btn-fire");
+        const scopeBtn = document.getElementById("btn-scope");
+        const breathBtn = document.getElementById("btn-breath");
+        if (fireBtn) {
+          fireBtn.addEventListener("pointerdown", (e) => {
+            e.preventDefault(); e.stopPropagation();
+            fireBtn.classList.add("active");
+            this.tryFire();
+          });
+          fireBtn.addEventListener("pointerup", () => fireBtn.classList.remove("active"));
+        }
+        if (scopeBtn) {
+          scopeBtn.addEventListener("pointerdown", (e) => {
+            e.preventDefault(); e.stopPropagation();
+            if (this.state !== "PLAY") return;
+            this.player.scoped = !this.player.scoped;
+            scopeBtn.classList.toggle("active", this.player.scoped);
+          });
+        }
+        if (breathBtn) {
+          const on = (e) => { e.preventDefault(); e.stopPropagation(); this.touchBreath = true; breathBtn.classList.add("active"); };
+          const off = () => { this.touchBreath = false; breathBtn.classList.remove("active"); };
+          breathBtn.addEventListener("pointerdown", on);
+          breathBtn.addEventListener("pointerup", off);
+          breathBtn.addEventListener("pointercancel", off);
+          breathBtn.addEventListener("pointerleave", off);
+        }
+
+        // Touch drag look when mobile (no pointer lock)
+        let lookId = null, lastX = 0, lastY = 0;
+        const isUi = (t) => !!(t && t.closest && t.closest(".touch-btn, .overlay, button, .up-card"));
+        window.addEventListener("pointerdown", (e) => {
+          if (!this.mobile || this.state !== "PLAY" || this.killcam || isUi(e.target)) return;
+          lookId = e.pointerId; lastX = e.clientX; lastY = e.clientY;
+        });
+        window.addEventListener("pointermove", (e) => {
+          if (!this.mobile || lookId !== e.pointerId) return;
+          this.player.addLook((e.clientX - lastX) * 1.4, (e.clientY - lastY) * 1.4);
+          lastX = e.clientX; lastY = e.clientY;
+          document.getElementById("click-capture").classList.add("hidden");
+        });
+        window.addEventListener("pointerup", (e) => { if (e.pointerId === lookId) lookId = null; });
+        window.addEventListener("pointercancel", (e) => { if (e.pointerId === lookId) lookId = null; });
       }
 
       resize() {
@@ -2018,6 +2259,7 @@
         this.renderer.setSize(w, h);
         this.composer.setSize(w, h);
         this.bloom.setSize(w, h);
+        this.viewmodel.resize();
       }
 
       start() {
@@ -2027,6 +2269,10 @@
         document.getElementById("hud").classList.add("visible");
         document.getElementById("click-capture").classList.remove("hidden");
         this.wantLock = true;
+        if (this.mobile) {
+          document.getElementById("click-capture").classList.add("hidden");
+          this.wantLock = false;
+        }
         this.wave = 0;
         this.score = 0;
         this.leaks = 0;
@@ -2059,8 +2305,8 @@
       resume() {
         document.getElementById("pause-screen").classList.add("hidden");
         this.state = "PLAY";
-        this.wantLock = true;
-        document.getElementById("click-capture").classList.remove("hidden");
+        this.wantLock = !this.mobile;
+        if (!this.mobile) document.getElementById("click-capture").classList.remove("hidden");
         this.audio.resume();
       }
 
@@ -2084,11 +2330,13 @@
         this.player.rifle.boltReady = true;
         this.rollWind();
         this.state = "PLAY";
-        this.banner(`ONDA ${String(this.wave).padStart(2, "0")}  ·  CLIQUE PARA MIRAR`);
+        this.banner(this.wave === 1
+          ? (this.mobile ? "ONDA 01  ·  ARRASTE PARA MIRAR" : "ONDA 01  ·  CLIQUE NO VALE PARA JOGAR")
+          : `ONDA ${String(this.wave).padStart(2, "0")}`);
         document.getElementById("wave-label").textContent = `ONDA ${String(this.wave).padStart(2, "0")}`;
         // Spawn the first pack right away so the valley isn't empty
         for (let i = 0; i < 10; i++) this.spawner.update(0.35);
-        if (!this.pointerLocked) document.getElementById("click-capture").classList.remove("hidden");
+        if (!this.pointerLocked && !this.mobile) document.getElementById("click-capture").classList.remove("hidden");
         this.updateHud();
       }
 
@@ -2104,6 +2352,7 @@
         if (!this.player.rifle.canFire()) return;
         const { origin, dir } = this.player.muzzlePoint();
         this.player.rifle.fire();
+        this.viewmodel.onFire();
         this.shots++;
         this.audio.shot();
         this.vfx.muzzleFlash(origin);
@@ -2126,6 +2375,8 @@
         }
         this.audio.flesh();
         this.vfx.bloodMist(point, bullet.vel.clone().normalize());
+        this.hitFlashT = res.head ? 0.18 : 0.1;
+        document.getElementById("hit-flash").classList.add("on");
         if (res.head) {
           this.heads++;
           this.player.rifle.refund(this.ammoForWave() + 4);
@@ -2244,7 +2495,7 @@
         this.state = "UPGRADE";
         document.exitPointerLock();
         const acc = this.shots > 0 ? this.hits / this.shots : 0;
-        this.points = 1 + (acc >= 0.45 ? 1 : 0) + (this.heads >= 3 ? 1 : 0);
+        this.points = (this.wave <= 3 ? 2 : 1) + (acc >= 0.4 ? 1 : 0) + (this.heads >= 2 ? 1 : 0);
         this.heads = 0;
         this.shots = 0;
         this.hits = 0;
@@ -2265,14 +2516,16 @@
         a.textContent = String(this.player.rifle.ammo).padStart(2, "0");
         a.classList.toggle("low", this.player.rifle.ammo <= 3);
         document.getElementById("score-label").textContent = `PONTOS  ${this.score}`;
-        for (let i = 0; i < 3; i++) {
-          document.getElementById("pip" + i).classList.toggle("on", i < this.leaks);
+        for (let i = 0; i < CONFIG.SHELTER_LEAKS_TO_LOSE; i++) {
+          const pip = document.getElementById("pip" + i);
+          if (pip) pip.classList.toggle("on", i < this.leaks);
         }
         const st = document.getElementById("stamina-wrap");
         st.classList.toggle("show", this.player.holding || this.player.exhausted > 0);
         document.getElementById("stamina-fill").style.width = (this.player.stamina * 100) + "%";
         document.getElementById("scope").classList.toggle("on", this.player.scopeMix > 0.55);
         document.getElementById("crosshair").style.opacity = this.player.scopeMix > 0.4 ? "0" : "1";
+        document.getElementById("btn-scope")?.classList.toggle("active", this.player.scoped);
       }
 
       applyThermal() {
@@ -2312,8 +2565,13 @@
           return;
         }
 
-        const hold = !!(this.keys.ShiftLeft || this.keys.ShiftRight);
+        const hold = !!(this.keys.ShiftLeft || this.keys.ShiftRight || this.touchBreath);
         this.player.update(dt, hold);
+        this.viewmodel.update(dt, this.player, this.time);
+        if (this.hitFlashT > 0) {
+          this.hitFlashT -= dtReal;
+          if (this.hitFlashT <= 0) document.getElementById("hit-flash").classList.remove("on");
+        }
         if (this.player.holding && this.player.stamina < 0.28) {
           this.heartT -= dt;
           if (this.heartT <= 0) { this.audio.heartbeat(); this.heartT = 0.7; }
@@ -2371,10 +2629,18 @@
         this.fxPass.uniforms.scopeV.value = this.player.scopeMix;
         this.fxPass.uniforms.chroma.value = 0.0016 + this.player.scopeMix * 0.0035;
         this.composer.render();
+        const showGun = this.state === "PLAY" && !this.killcam && this.player.scopeMix < 0.88;
+        if (showGun) {
+          this.renderer.autoClear = false;
+          this.renderer.clearDepth();
+          this.renderer.render(this.viewmodel.scene, this.viewmodel.camera);
+          this.renderer.autoClear = true;
+        }
       }
     }
 
     const game = new Game();
+    window.game = game;
   </script>
 </body>
 </html>
