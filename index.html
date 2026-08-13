@@ -617,8 +617,8 @@
       BLOOM_THRESHOLD: 0.72,
       USE_SSAO: false,
 
-      SPAWN_Z_MIN: 170,
-      SPAWN_Z_MAX: 280,
+      SPAWN_Z_MIN: 110,
+      SPAWN_Z_MAX: 190,
       SPAWN_X_RANGE: 32,
       ENEMY_SCALE: { raptor: 1.45, trike: 1.65, ptera: 1.7, trex: 2.05 },
       MAX_BULLETS: 10,
@@ -1872,7 +1872,8 @@
 
       waveCleared() {
         if (this.queue.length || this.waitingBoss) return false;
-        return this.active.every((e) => !e.alive && !e.dying);
+        if (this.spawned === 0) return false;
+        return this.active.length > 0 && this.active.every((e) => !e.alive && !e.dying);
       }
 
       prune() {
@@ -2489,25 +2490,19 @@
         });
         window.addEventListener("keyup", (e) => { this.keys[e.code] = false; });
         window.addEventListener("mousemove", (e) => {
-          if (this.mobile) return;
-          if (this.state !== "PLAY" || !this.pointerLocked || this.killcam) return;
+          if (this.mobile || this.state !== "PLAY" || this.killcam) return;
+          if (e.target && e.target.closest && e.target.closest(".overlay, button, .up-card")) return;
           this.player.addLook(e.movementX, e.movementY);
         });
         window.addEventListener("mousedown", (e) => {
-          if (this.mobile) return;
-          if (this.state !== "PLAY" || this.killcam) return;
-          if (e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return;
-          if (!this.pointerLocked) this.lockPointer();
+          if (this.mobile || this.state !== "PLAY" || this.killcam) return;
+          if (e.target && e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return;
+          this.lockPointer();
           if (e.button === 2) this.player.scoped = !this.player.scoped;
-          if (e.button === 0 && this.pointerLocked) this.tryFire();
+          if (e.button === 0) this.tryFire();
         });
         document.addEventListener("pointerlockchange", () => {
-          if (this.mobile) return;
-          const locked = document.pointerLockElement === el;
-          const lost = this.pointerLocked && !locked;
-          this.pointerLocked = locked;
-          if (lost && this.state === "PLAY" && !this.ignoreLockLoss) this.pause();
-          this.ignoreLockLoss = false;
+          this.pointerLocked = document.pointerLockElement === el;
         });
         document.addEventListener("pointerlockerror", () => {
           this.pointerLocked = false;
@@ -2515,9 +2510,8 @@
 
         const lookFrom = (e) => {
           if (this.state !== "PLAY" || this.killcam) return false;
-          if (e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return false;
-          if (this.pointerLocked) return false;
-          return e.pointerType === "touch" || this.mobile || !this.pointerLocked;
+          if (e.target && e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return false;
+          return e.pointerType === "touch" || this.mobile;
         };
         window.addEventListener("pointerdown", (e) => {
           if (!lookFrom(e)) return;
@@ -2596,7 +2590,6 @@
 
       unlockPointer() {
         if (this.mobile) return;
-        this.ignoreLockLoss = true;
         if (document.pointerLockElement) document.exitPointerLock();
       }
 
@@ -2673,6 +2666,7 @@
         this.banner(`ONDA ${String(this.wave).padStart(2, "0")}  ·  LUNETA: ${this.mobile ? "BOTÃO" : "BOTÃO DIREITO"}`);
         document.getElementById("wave-label").textContent = `ONDA ${String(this.wave).padStart(2, "0")}`;
         this.inputGrace = Math.max(this.inputGrace, 0.4);
+        this.spawner.update(0.05);
         this.updateHud();
       }
 
@@ -2953,19 +2947,23 @@
 
       loop() {
         requestAnimationFrame(this.loop);
-        const dtReal = Math.min(this.clock.getDelta(), 0.05);
-        const dt = dtReal * this.timeScale;
-        this.update(dt, dtReal);
-        this.fxPass.uniforms.time.value = this.time;
-        this.fxPass.uniforms.scopeV.value = this.player.scopeMix;
-        this.fxPass.uniforms.chroma.value = 0.0016 + this.player.scopeMix * 0.0035;
-        this.composer.render();
-        const showGun = this.state === "PLAY" && !this.killcam && this.player.scopeMix < 0.9;
-        if (showGun) {
-          this.renderer.autoClear = false;
-          this.renderer.clearDepth();
-          this.renderer.render(this.viewmodel.scene, this.viewmodel.camera);
-          this.renderer.autoClear = true;
+        try {
+          const dtReal = Math.min(this.clock.getDelta(), 0.05);
+          const dt = dtReal * this.timeScale;
+          this.update(dt, dtReal);
+          this.fxPass.uniforms.time.value = this.time;
+          this.fxPass.uniforms.scopeV.value = this.player.scopeMix;
+          this.fxPass.uniforms.chroma.value = 0.0016 + this.player.scopeMix * 0.0035;
+          this.composer.render();
+          const showGun = this.state === "PLAY" && !this.killcam && this.player.scopeMix < 0.9;
+          if (showGun) {
+            this.renderer.autoClear = false;
+            this.renderer.clearDepth();
+            this.renderer.render(this.viewmodel.scene, this.viewmodel.camera);
+            this.renderer.autoClear = true;
+          }
+        } catch (err) {
+          console.error("Cretaceo loop", err);
         }
       }
     }
