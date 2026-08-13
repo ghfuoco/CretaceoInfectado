@@ -348,9 +348,27 @@
       z-index: 11;
     }
 
-    body.mobile #hud.visible #touch-ui { display: block; }
-    #hud:not(.visible) #touch-ui, #touch-ui { pointer-events: none; }
-    body.mobile #hud.visible #touch-ui .touch-btn { pointer-events: auto; }
+    #hud.visible #touch-ui { display: block; }
+    #hud.visible #touch-ui .touch-btn { pointer-events: auto; }
+
+    #look-hint {
+      display: none;
+      position: absolute;
+      left: 50%;
+      bottom: 28%;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      color: #d8e8a0;
+      background: rgba(8, 6, 4, 0.55);
+      border: 1px solid rgba(224, 162, 58, 0.35);
+      pointer-events: none;
+      z-index: 12;
+      white-space: nowrap;
+    }
+    #hud.visible #look-hint { display: block; }
+    #look-hint.hide { opacity: 0; transition: opacity 0.6s; }
 
     .touch-btn {
       pointer-events: auto;
@@ -408,12 +426,12 @@
       font-size: 12px;
     }
 
-    body.mobile #hud-br {
+    #hud-br {
       right: max(16px, env(safe-area-inset-right));
       bottom: calc(168px + env(safe-area-inset-bottom));
     }
 
-    body.mobile #hud-tl {
+    #hud-tl {
       left: max(14px, env(safe-area-inset-left));
       top: max(14px, env(safe-area-inset-top));
     }
@@ -501,6 +519,7 @@
         <div class="hud-line" id="dist-label">DIST  —</div>
         <div class="hud-line" id="score-label">PONTOS  0</div>
       </div>
+      <div id="look-hint">ARRASTE PARA MIRAR · BOTÕES PARA ATIRAR</div>
       <div id="touch-ui">
         <button type="button" class="touch-btn" id="btn-pause-touch" aria-label="Pausar">II</button>
         <button type="button" class="touch-btn" id="btn-breath">PULMÃO</button>
@@ -516,21 +535,17 @@
         entre o vale e o abrigo civil. Distância, vento, pulmão.
       </div>
       <div class="controls pc-only">
-        <div><b>MOUSE</b> — mirar (rotação limitada)</div>
-        <div><b>BOTÃO DIREITO</b> — luneta</div>
-        <div><b>BOTÃO ESQUERDO</b> — disparar</div>
-        <div><b>SHIFT</b> — prender a respiração (4s)</div>
-        <div><b>ESC</b> — pausar</div>
-        <div>Os alvos vêm <b>pelo vale à frente</b>. Sem luneta são silhuetas na névoa.</div>
-        <div>Ferrolho manual entre tiros. Cabeça devolve 1 bala. 3 vazamentos = fim.</div>
+        <div><b>ARRASTAR</b> — mirar · <b>CLIQUE / TIRO</b> — disparar</div>
+        <div><b>BOTÃO DIREITO / LUNETA / E</b> — luneta</div>
+        <div><b>WASD / SETAS</b> — mirar · <b>F / ESPAÇO</b> — atirar</div>
+        <div><b>SHIFT / PULMÃO</b> — prender a respiração</div>
+        <div><b>ESC / II</b> — pausar</div>
+        <div>Os alvos vêm <b>pelo vale à frente</b>. Ferrolho manual. Cabeça devolve 1 bala.</div>
       </div>
       <div class="controls mobile-only">
         <div><b>ARRASTAR</b> — mirar</div>
-        <div><b>TIRO</b> — botão direito</div>
-        <div><b>LUNETA</b> — ativar zoom</div>
-        <div><b>PULMÃO</b> — segurar para prender a respiração</div>
+        <div><b>TIRO</b> · <b>LUNETA</b> · <b>PULMÃO</b> — botões na tela</div>
         <div>Os alvos vêm <b>pelo vale à frente</b>. Use a luneta.</div>
-        <div>Ferrolho manual entre tiros. Cabeça devolve 1 bala. 3 vazamentos = fim.</div>
       </div>
       <button id="btn-start">INICIAR</button>
     </div>
@@ -579,9 +594,10 @@
       SCOPE_FOV_MAX_ZOOM: 6,
       YAW_LIMIT: (55 * Math.PI) / 180,
       PITCH_LIMIT: (28 * Math.PI) / 180,
-      LOOK_SENS: 0.00205,
-      SCOPE_SENS: 0.00042,
-      TOUCH_LOOK_MULT: 1.55,
+      LOOK_SENS: 0.0024,
+      SCOPE_SENS: 0.0007,
+      TOUCH_LOOK_MULT: 1.35,
+      DRAG_LOOK_MULT: 1.0,
 
       BREATH_HOLD_DURATION: 4,
       SWAY_PENALTY_DURATION: 2,
@@ -617,10 +633,10 @@
       BLOOM_THRESHOLD: 0.72,
       USE_SSAO: false,
 
-      SPAWN_Z_MIN: 110,
-      SPAWN_Z_MAX: 190,
-      SPAWN_X_RANGE: 32,
-      ENEMY_SCALE: { raptor: 1.45, trike: 1.65, ptera: 1.7, trex: 2.05 },
+      SPAWN_Z_MIN: 55,
+      SPAWN_Z_MAX: 120,
+      SPAWN_X_RANGE: 26,
+      ENEMY_SCALE: { raptor: 2.1, trike: 2.3, ptera: 2.4, trex: 2.8 },
       MAX_BULLETS: 10,
 
       RAPTOR_HP: 32,
@@ -1837,8 +1853,8 @@
         const e = this.obtain(type);
         if (!e) return false;
         const x = rand(-CONFIG.SPAWN_X_RANGE, CONFIG.SPAWN_X_RANGE);
-        const near = CONFIG.SPAWN_Z_MIN + Math.min(this.wave - 1, 8) * 22;
-        const far = CONFIG.SPAWN_Z_MAX + Math.min(this.wave - 1, 8) * 28;
+        const near = CONFIG.SPAWN_Z_MIN + Math.min(Math.max(this.wave - 1, 0), 6) * 12;
+        const far = CONFIG.SPAWN_Z_MAX + Math.min(Math.max(this.wave - 1, 0), 6) * 18;
         const z = rand(near, far);
         const s = this.stats(type, this.wave);
         e.reset(x, z, s.hp, s.speed);
@@ -2474,6 +2490,8 @@
 
       bind() {
         const el = this.renderer.domElement;
+        const isUi = (t) => !!(t && t.closest && t.closest(".touch-btn, .overlay, button, .up-card"));
+
         document.getElementById("btn-start").onclick = () => this.start();
         document.getElementById("btn-resume").onclick = () => this.resume();
         document.getElementById("btn-next-wave").onclick = () => this.beginWave();
@@ -2481,58 +2499,67 @@
 
         document.addEventListener("contextmenu", (e) => e.preventDefault());
         document.addEventListener("dblclick", (e) => e.preventDefault());
+
         window.addEventListener("keydown", (e) => {
           this.keys[e.code] = true;
           if (e.code === "Escape") {
             if (this.state === "PLAY") this.pause();
             else if (this.state === "PAUSE") this.resume();
           }
+          // Arrow keys / WASD as look backup
+          if (this.state === "PLAY" && !this.killcam) {
+            const step = 14;
+            if (e.code === "ArrowLeft" || e.code === "KeyA") this.player.addLook(-step, 0);
+            if (e.code === "ArrowRight" || e.code === "KeyD") this.player.addLook(step, 0);
+            if (e.code === "ArrowUp" || e.code === "KeyW") this.player.addLook(0, -step);
+            if (e.code === "ArrowDown" || e.code === "KeyS") this.player.addLook(0, step);
+            if (e.code === "KeyF" || e.code === "Space") { e.preventDefault(); this.tryFire(); }
+            if (e.code === "KeyR" || e.code === "KeyE") this.player.scoped = !this.player.scoped;
+          }
         });
         window.addEventListener("keyup", (e) => { this.keys[e.code] = false; });
-        window.addEventListener("mousemove", (e) => {
-          if (this.mobile || this.state !== "PLAY" || this.killcam) return;
-          if (e.target && e.target.closest && e.target.closest(".overlay, button, .up-card")) return;
-          this.player.addLook(e.movementX, e.movementY);
-        });
-        window.addEventListener("mousedown", (e) => {
-          if (this.mobile || this.state !== "PLAY" || this.killcam) return;
-          if (e.target && e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return;
-          this.lockPointer();
-          if (e.button === 2) this.player.scoped = !this.player.scoped;
-          if (e.button === 0) this.tryFire();
-        });
-        document.addEventListener("pointerlockchange", () => {
-          this.pointerLocked = document.pointerLockElement === el;
-        });
-        document.addEventListener("pointerlockerror", () => {
-          this.pointerLocked = false;
-        });
 
-        const lookFrom = (e) => {
-          if (this.state !== "PLAY" || this.killcam) return false;
-          if (e.target && e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return false;
-          return e.pointerType === "touch" || this.mobile;
-        };
-        window.addEventListener("pointerdown", (e) => {
-          if (!lookFrom(e)) return;
+        // Universal drag-to-look — works without pointer lock
+        const onDown = (e) => {
+          if (this.state !== "PLAY" || this.killcam) return;
+          if (isUi(e.target)) return;
           if (this.lookId != null) return;
           this.lookId = e.pointerId;
           this.lastLook.x = e.clientX;
           this.lastLook.y = e.clientY;
-        });
-        window.addEventListener("pointermove", (e) => {
+          this.dragMoved = 0;
+          try { el.setPointerCapture?.(e.pointerId); } catch (_) {}
+        };
+        const onMove = (e) => {
           if (this.lookId !== e.pointerId) return;
           const dx = e.clientX - this.lastLook.x;
           const dy = e.clientY - this.lastLook.y;
           this.lastLook.x = e.clientX;
           this.lastLook.y = e.clientY;
-          this.player.addLook(dx * CONFIG.TOUCH_LOOK_MULT, dy * CONFIG.TOUCH_LOOK_MULT);
-        });
-        const endLook = (e) => {
-          if (e.pointerId === this.lookId) this.lookId = null;
+          this.dragMoved += Math.abs(dx) + Math.abs(dy);
+          const mul = (e.pointerType === "touch" || this.mobile)
+            ? CONFIG.TOUCH_LOOK_MULT
+            : CONFIG.DRAG_LOOK_MULT;
+          this.player.addLook(dx * mul, dy * mul);
+          this.hideLookHint();
         };
-        window.addEventListener("pointerup", endLook);
-        window.addEventListener("pointercancel", endLook);
+        const onUp = (e) => {
+          if (e.pointerId !== this.lookId) return;
+          const moved = this.dragMoved;
+          this.lookId = null;
+          if (moved < 8 && this.state === "PLAY" && !this.killcam) {
+            if (e.pointerType === "touch" || e.button === 0 || e.button === -1) this.tryFire();
+          }
+        };
+        el.addEventListener("pointerdown", onDown);
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+        window.addEventListener("pointercancel", onUp);
+
+        window.addEventListener("mousedown", (e) => {
+          if (this.state !== "PLAY" || this.killcam || isUi(e.target)) return;
+          if (e.button === 2) this.player.scoped = !this.player.scoped;
+        });
 
         const fireBtn = document.getElementById("btn-fire");
         const scopeBtn = document.getElementById("btn-scope");
@@ -2543,6 +2570,7 @@
           this.tryFire();
         });
         fireBtn.addEventListener("pointerup", () => fireBtn.classList.remove("active"));
+        fireBtn.addEventListener("pointercancel", () => fireBtn.classList.remove("active"));
         scopeBtn.addEventListener("pointerdown", (e) => {
           e.preventDefault(); e.stopPropagation();
           if (this.state !== "PLAY") return;
@@ -2564,7 +2592,7 @@
         breathBtn.addEventListener("pointerleave", breathOff);
         document.getElementById("btn-pause-touch").addEventListener("pointerdown", (e) => {
           e.preventDefault(); e.stopPropagation();
-          if (!this.mobile || this.inputGrace > 0) return;
+          if (this.inputGrace > 0) return;
           if (this.state === "PLAY") this.pause();
         });
 
@@ -2573,9 +2601,14 @@
         this.syncPortrait();
       }
 
+      hideLookHint() {
+        const h = document.getElementById("look-hint");
+        if (h) h.classList.add("hide");
+      }
+
       viewSize() {
         const vv = window.visualViewport;
-        if (vv && this.mobile) return { w: Math.round(vv.width), h: Math.round(vv.height) };
+        if (vv) return { w: Math.max(1, Math.round(vv.width)), h: Math.max(1, Math.round(vv.height)) };
         return { w: innerWidth, h: innerHeight };
       }
 
@@ -2583,22 +2616,12 @@
         document.body.classList.toggle("portrait", innerHeight > innerWidth);
       }
 
-      lockPointer() {
-        if (this.mobile || this.pointerLocked) return;
-        try { this.renderer.domElement.requestPointerLock(); } catch (err) { /* ignore */ }
-      }
-
-      unlockPointer() {
-        if (this.mobile) return;
-        if (document.pointerLockElement) document.exitPointerLock();
-      }
-
       resize() {
         this.syncPortrait();
         const { w, h } = this.viewSize();
         this.camera.aspect = w / h;
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(w, h);
+        this.renderer.setSize(w, h, false);
         this.composer.setSize(w, h);
         this.bloom.setSize(w, h);
         this.viewmodel.resize();
@@ -2608,15 +2631,25 @@
         this.audio.resume();
         document.getElementById("start-screen").classList.add("hidden");
         document.getElementById("pause-screen").classList.add("hidden");
+        document.getElementById("upgrade-screen").classList.add("hidden");
+        document.getElementById("gameover-screen").classList.add("hidden");
         document.getElementById("hud").classList.add("visible");
-        this.inputGrace = 0.6;
+        document.getElementById("look-hint")?.classList.remove("hide");
+        this.inputGrace = 0.8;
         this.wave = 0;
         this.score = 0;
         this.leaks = 0;
         this.shots = 0;
         this.hits = 0;
         this.heads = 0;
+        this.killcam = null;
+        this.timeScale = 1;
+        this.lookId = null;
+        this.player.scoped = false;
+        this.player.yaw = 0;
+        this.player.pitch = -0.18;
         this.player.upgrades = { breath: 0, pierce: 0, mag: 0, zoom: 0, thermal: 0 };
+        this.state = "PLAY";
         this.beginWave();
       }
 
@@ -2633,14 +2666,14 @@
       pause() {
         if (this.state !== "PLAY") return;
         this.state = "PAUSE";
+        this.lookId = null;
         document.getElementById("pause-screen").classList.remove("hidden");
-        this.unlockPointer();
       }
 
       resume() {
         document.getElementById("pause-screen").classList.add("hidden");
         this.state = "PLAY";
-        this.inputGrace = 0.35;
+        this.inputGrace = 0.4;
         this.audio.resume();
       }
 
@@ -2657,16 +2690,17 @@
 
       beginWave() {
         document.getElementById("upgrade-screen").classList.add("hidden");
+        document.getElementById("pause-screen").classList.add("hidden");
         this.wave++;
         this.spawner.planWave(this.wave);
         this.player.rifle.ammo = this.ammoForWave();
         this.player.rifle.boltReady = true;
         this.rollWind();
         this.state = "PLAY";
-        this.banner(`ONDA ${String(this.wave).padStart(2, "0")}  ·  LUNETA: ${this.mobile ? "BOTÃO" : "BOTÃO DIREITO"}`);
+        this.banner(`ONDA ${String(this.wave).padStart(2, "0")}  ·  ARRASTE PARA MIRAR`);
         document.getElementById("wave-label").textContent = `ONDA ${String(this.wave).padStart(2, "0")}`;
-        this.inputGrace = Math.max(this.inputGrace, 0.4);
-        this.spawner.update(0.05);
+        this.inputGrace = Math.max(this.inputGrace, 0.5);
+        for (let i = 0; i < 8; i++) this.spawner.update(0.4);
         this.updateHud();
       }
 
@@ -2821,7 +2855,7 @@
 
       openUpgrades() {
         this.state = "UPGRADE";
-        this.unlockPointer();
+        this.lookId = null;
         const acc = this.shots > 0 ? this.hits / this.shots : 0;
         this.points = 1 + (acc >= 0.45 ? 1 : 0) + (this.heads >= 3 ? 1 : 0);
         this.heads = 0;
@@ -2833,7 +2867,7 @@
 
       gameOver() {
         this.state = "DEAD";
-        this.unlockPointer();
+        this.lookId = null;
         document.getElementById("gameover-screen").classList.remove("hidden");
         document.getElementById("go-stats").textContent =
           `Onda ${this.wave}  ·  ${this.score} pontos  ·  o vale tomou o abrigo.`;
@@ -2893,6 +2927,15 @@
         }
 
         if (this.inputGrace > 0) this.inputGrace -= dtReal;
+
+        // Hold-to-look with arrows / WASD
+        {
+          const step = 55 * dt;
+          if (this.keys.ArrowLeft || this.keys.KeyA) this.player.addLook(-step / CONFIG.LOOK_SENS, 0);
+          if (this.keys.ArrowRight || this.keys.KeyD) this.player.addLook(step / CONFIG.LOOK_SENS, 0);
+          if (this.keys.ArrowUp || this.keys.KeyW) this.player.addLook(0, -step / CONFIG.LOOK_SENS);
+          if (this.keys.ArrowDown || this.keys.KeyS) this.player.addLook(0, step / CONFIG.LOOK_SENS);
+        }
 
         const hold = !!(this.keys.ShiftLeft || this.keys.ShiftRight || this.touchBreath);
         this.player.update(dt, hold);
@@ -2969,6 +3012,7 @@
     }
 
     const game = new Game();
+    window.game = game;
   </script>
 </body>
 </html>
