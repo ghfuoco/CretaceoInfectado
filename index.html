@@ -2,7 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Cretáceo Infectado</title>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Share+Tech+Mono&display=swap");
@@ -26,9 +29,13 @@
       font-family: "Share Tech Mono", ui-monospace, monospace;
       user-select: none;
       cursor: crosshair;
+      touch-action: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      overscroll-behavior: none;
     }
 
-    canvas { display: block; }
+    canvas { display: block; touch-action: none; }
 
     #ui {
       position: fixed;
@@ -51,6 +58,7 @@
       cursor: default;
       text-align: center;
       padding: 32px;
+      touch-action: manipulation;
     }
 
     .overlay.hidden { display: none; }
@@ -99,6 +107,7 @@
       letter-spacing: 0.28em;
       cursor: pointer;
       transition: 0.2s transform, 0.2s background, 0.2s box-shadow;
+      touch-action: manipulation;
     }
 
     button:hover {
@@ -326,6 +335,132 @@
     }
 
     .pip.on { background: #8a2020; box-shadow: 0 0 8px #a20; }
+
+    .mobile-only { display: none; }
+    body.mobile .pc-only { display: none; }
+    body.mobile .mobile-only { display: block; }
+
+    #touch-ui {
+      display: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    body.mobile #hud.visible #touch-ui { display: block; }
+    #hud:not(.visible) #touch-ui, #touch-ui { pointer-events: none; }
+    body.mobile #hud.visible #touch-ui .touch-btn { pointer-events: auto; }
+
+    .touch-btn {
+      pointer-events: auto;
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1px solid rgba(224, 162, 58, 0.55);
+      background: rgba(10, 8, 6, 0.5);
+      color: var(--amber);
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      line-height: 1.2;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .touch-btn.active, .touch-btn:active {
+      background: rgba(180, 90, 20, 0.55);
+      box-shadow: 0 0 18px rgba(224, 162, 58, 0.35);
+      transform: none;
+    }
+
+    #btn-fire {
+      right: max(16px, env(safe-area-inset-right));
+      bottom: max(22px, env(safe-area-inset-bottom));
+      width: 88px;
+      height: 88px;
+      font-size: 13px;
+      letter-spacing: 0.2em;
+    }
+
+    #btn-scope {
+      right: max(22px, env(safe-area-inset-right));
+      bottom: calc(122px + env(safe-area-inset-bottom));
+    }
+
+    #btn-breath {
+      left: max(16px, env(safe-area-inset-left));
+      bottom: max(22px, env(safe-area-inset-bottom));
+    }
+
+    #btn-pause-touch {
+      right: max(14px, env(safe-area-inset-right));
+      top: max(14px, env(safe-area-inset-top));
+      width: 46px;
+      height: 46px;
+      font-size: 12px;
+    }
+
+    body.mobile #hud-br {
+      right: max(16px, env(safe-area-inset-right));
+      bottom: calc(168px + env(safe-area-inset-bottom));
+    }
+
+    body.mobile #hud-tl {
+      left: max(14px, env(safe-area-inset-left));
+      top: max(14px, env(safe-area-inset-top));
+    }
+
+    body.mobile #ammo { font-size: 32px; }
+
+    body.mobile .mildot {
+      width: min(70vw, 320px);
+      height: min(70vw, 320px);
+      margin: calc(min(70vw, 320px) / -2) 0 0 calc(min(70vw, 320px) / -2);
+    }
+
+    #upgrade-screen {
+      overflow-y: auto;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+      justify-content: flex-start;
+      padding-top: max(28px, env(safe-area-inset-top));
+      padding-bottom: max(28px, env(safe-area-inset-bottom));
+    }
+
+    #rotate-hint {
+      display: none;
+      position: absolute;
+      top: max(8px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      pointer-events: none;
+      padding: 8px 14px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--amber);
+      background: rgba(10, 8, 6, 0.65);
+      border: 1px solid rgba(224, 162, 58, 0.35);
+      text-align: center;
+    }
+
+    body.mobile.portrait #rotate-hint { display: block; }
+
+    @media (max-width: 720px) {
+      .title { font-size: clamp(22px, 8vw, 40px); letter-spacing: 0.1em; }
+      .subtitle { font-size: 13px; }
+      .controls { font-size: 12px; margin: 16px 0; }
+      .overlay { padding: 20px 16px; }
+      .upgrade-grid { grid-template-columns: 1fr; }
+    }
   </style>
   <script type="importmap">
   {
@@ -366,6 +501,12 @@
         <div class="hud-line" id="dist-label">DIST  —</div>
         <div class="hud-line" id="score-label">PONTOS  0</div>
       </div>
+      <div id="touch-ui">
+        <button type="button" class="touch-btn" id="btn-pause-touch" aria-label="Pausar">II</button>
+        <button type="button" class="touch-btn" id="btn-breath">PULMÃO</button>
+        <button type="button" class="touch-btn" id="btn-scope">LUNETA</button>
+        <button type="button" class="touch-btn" id="btn-fire">TIRO</button>
+      </div>
     </div>
 
     <div class="overlay" id="start-screen">
@@ -374,7 +515,7 @@
         Um patógeno reanimou a escavação. Da torre, você é a última linha
         entre o vale e o abrigo civil. Distância, vento, pulmão.
       </div>
-      <div class="controls">
+      <div class="controls pc-only">
         <div><b>MOUSE</b> — mirar (rotação limitada)</div>
         <div><b>BOTÃO DIREITO</b> — luneta</div>
         <div><b>BOTÃO ESQUERDO</b> — disparar</div>
@@ -383,8 +524,18 @@
         <div>Os alvos vêm <b>pelo vale à frente</b>. Sem luneta são silhuetas na névoa.</div>
         <div>Ferrolho manual entre tiros. Cabeça devolve 1 bala. 3 vazamentos = fim.</div>
       </div>
+      <div class="controls mobile-only">
+        <div><b>ARRASTAR</b> — mirar</div>
+        <div><b>TIRO</b> — botão direito</div>
+        <div><b>LUNETA</b> — ativar zoom</div>
+        <div><b>PULMÃO</b> — segurar para prender a respiração</div>
+        <div>Os alvos vêm <b>pelo vale à frente</b>. Use a luneta.</div>
+        <div>Ferrolho manual entre tiros. Cabeça devolve 1 bala. 3 vazamentos = fim.</div>
+      </div>
       <button id="btn-start">INICIAR</button>
     </div>
+
+    <div id="rotate-hint">Melhor na horizontal</div>
 
     <div class="overlay hidden" id="pause-screen">
       <div class="title">PAUSA</div>
@@ -430,6 +581,7 @@
       PITCH_LIMIT: (28 * Math.PI) / 180,
       LOOK_SENS: 0.00205,
       SCOPE_SENS: 0.00042,
+      TOUCH_LOOK_MULT: 1.55,
 
       BREATH_HOLD_DURATION: 4,
       SWAY_PENALTY_DURATION: 2,
@@ -494,6 +646,13 @@
       sick: 0x6f8f2e,
       fog: 0x3a1a28,
     };
+
+    function isMobileDevice() {
+      const touch = (navigator.maxTouchPoints || 0) > 0;
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const noHover = window.matchMedia("(hover: none)").matches;
+      return (coarse && noHover) || (touch && noHover);
+    }
 
     // =====================================================================
     // Math / noise
@@ -2214,14 +2373,22 @@
         this.time = 0;
         this.keys = {};
         this.pointerLocked = false;
+        this.ignoreLockLoss = false;
+        this.inputGrace = 0;
         this.heartT = 0;
+        this.mobile = isMobileDevice();
+        this.touchBreath = false;
+        this.lookId = null;
+        this.lastLook = { x: 0, y: 0 };
+        if (this.mobile) document.body.classList.add("mobile");
 
         this.audio = new AudioSynth();
         initGeo();
         initSprites();
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, CONFIG.PIXEL_RATIO_CAP));
+        const pixelCap = this.mobile ? 1.1 : CONFIG.PIXEL_RATIO_CAP;
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelCap));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -2244,7 +2411,8 @@
         const sun = new THREE.DirectionalLight(0xff8a3a, 1.15);
         sun.position.set(-70, 55, 90);
         sun.castShadow = true;
-        sun.shadow.mapSize.set(CONFIG.SHADOW_MAP_SIZE, CONFIG.SHADOW_MAP_SIZE);
+        const shadowSize = this.mobile ? 1024 : CONFIG.SHADOW_MAP_SIZE;
+        sun.shadow.mapSize.set(shadowSize, shadowSize);
         sun.shadow.camera.near = 10;
         sun.shadow.camera.far = 520;
         sun.shadow.camera.left = -160;
@@ -2273,8 +2441,10 @@
         this.composer.addPass(new RenderPass(this.scene, this.camera));
         this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), CONFIG.BLOOM_STRENGTH, CONFIG.BLOOM_RADIUS, CONFIG.BLOOM_THRESHOLD);
         this.composer.addPass(this.bloom);
-        this.smaa = new SMAAPass(w * this.renderer.getPixelRatio(), h * this.renderer.getPixelRatio());
-        this.composer.addPass(this.smaa);
+        if (!this.mobile) {
+          this.smaa = new SMAAPass(w * this.renderer.getPixelRatio(), h * this.renderer.getPixelRatio());
+          this.composer.addPass(this.smaa);
+        }
         this.fxPass = new ShaderPass(FXShader);
         this.composer.addPass(this.fxPass);
         this.composer.addPass(new OutputPass());
@@ -2309,6 +2479,7 @@
         document.getElementById("btn-restart").onclick = () => this.restart();
 
         document.addEventListener("contextmenu", (e) => e.preventDefault());
+        document.addEventListener("dblclick", (e) => e.preventDefault());
         window.addEventListener("keydown", (e) => {
           this.keys[e.code] = true;
           if (e.code === "Escape") {
@@ -2318,29 +2489,120 @@
         });
         window.addEventListener("keyup", (e) => { this.keys[e.code] = false; });
         window.addEventListener("mousemove", (e) => {
+          if (this.mobile) return;
           if (this.state !== "PLAY" || !this.pointerLocked || this.killcam) return;
           this.player.addLook(e.movementX, e.movementY);
         });
         window.addEventListener("mousedown", (e) => {
-          if (this.state !== "PLAY") return;
-          if (!this.pointerLocked) {
-            el.requestPointerLock();
-            return;
-          }
-          if (e.button === 2) {
-            this.player.scoped = !this.player.scoped;
-          }
-          if (e.button === 0) this.tryFire();
+          if (this.mobile) return;
+          if (this.state !== "PLAY" || this.killcam) return;
+          if (e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return;
+          if (!this.pointerLocked) this.lockPointer();
+          if (e.button === 2) this.player.scoped = !this.player.scoped;
+          if (e.button === 0 && this.pointerLocked) this.tryFire();
         });
         document.addEventListener("pointerlockchange", () => {
-          this.pointerLocked = document.pointerLockElement === el;
-          if (!this.pointerLocked && this.state === "PLAY") this.pause();
+          if (this.mobile) return;
+          const locked = document.pointerLockElement === el;
+          const lost = this.pointerLocked && !locked;
+          this.pointerLocked = locked;
+          if (lost && this.state === "PLAY" && !this.ignoreLockLoss) this.pause();
+          this.ignoreLockLoss = false;
         });
+        document.addEventListener("pointerlockerror", () => {
+          this.pointerLocked = false;
+        });
+
+        const lookFrom = (e) => {
+          if (this.state !== "PLAY" || this.killcam) return false;
+          if (e.target.closest && e.target.closest(".touch-btn, .overlay, button, .up-card")) return false;
+          if (this.pointerLocked) return false;
+          return e.pointerType === "touch" || this.mobile || !this.pointerLocked;
+        };
+        window.addEventListener("pointerdown", (e) => {
+          if (!lookFrom(e)) return;
+          if (this.lookId != null) return;
+          this.lookId = e.pointerId;
+          this.lastLook.x = e.clientX;
+          this.lastLook.y = e.clientY;
+        });
+        window.addEventListener("pointermove", (e) => {
+          if (this.lookId !== e.pointerId) return;
+          const dx = e.clientX - this.lastLook.x;
+          const dy = e.clientY - this.lastLook.y;
+          this.lastLook.x = e.clientX;
+          this.lastLook.y = e.clientY;
+          this.player.addLook(dx * CONFIG.TOUCH_LOOK_MULT, dy * CONFIG.TOUCH_LOOK_MULT);
+        });
+        const endLook = (e) => {
+          if (e.pointerId === this.lookId) this.lookId = null;
+        };
+        window.addEventListener("pointerup", endLook);
+        window.addEventListener("pointercancel", endLook);
+
+        const fireBtn = document.getElementById("btn-fire");
+        const scopeBtn = document.getElementById("btn-scope");
+        const breathBtn = document.getElementById("btn-breath");
+        fireBtn.addEventListener("pointerdown", (e) => {
+          e.preventDefault(); e.stopPropagation();
+          fireBtn.classList.add("active");
+          this.tryFire();
+        });
+        fireBtn.addEventListener("pointerup", () => fireBtn.classList.remove("active"));
+        scopeBtn.addEventListener("pointerdown", (e) => {
+          e.preventDefault(); e.stopPropagation();
+          if (this.state !== "PLAY") return;
+          this.player.scoped = !this.player.scoped;
+          scopeBtn.classList.toggle("active", this.player.scoped);
+        });
+        const breathOn = (e) => {
+          e.preventDefault(); e.stopPropagation();
+          this.touchBreath = true;
+          breathBtn.classList.add("active");
+        };
+        const breathOff = () => {
+          this.touchBreath = false;
+          breathBtn.classList.remove("active");
+        };
+        breathBtn.addEventListener("pointerdown", breathOn);
+        breathBtn.addEventListener("pointerup", breathOff);
+        breathBtn.addEventListener("pointercancel", breathOff);
+        breathBtn.addEventListener("pointerleave", breathOff);
+        document.getElementById("btn-pause-touch").addEventListener("pointerdown", (e) => {
+          e.preventDefault(); e.stopPropagation();
+          if (!this.mobile || this.inputGrace > 0) return;
+          if (this.state === "PLAY") this.pause();
+        });
+
         window.addEventListener("resize", () => this.resize());
+        window.visualViewport?.addEventListener("resize", () => this.resize());
+        this.syncPortrait();
+      }
+
+      viewSize() {
+        const vv = window.visualViewport;
+        if (vv && this.mobile) return { w: Math.round(vv.width), h: Math.round(vv.height) };
+        return { w: innerWidth, h: innerHeight };
+      }
+
+      syncPortrait() {
+        document.body.classList.toggle("portrait", innerHeight > innerWidth);
+      }
+
+      lockPointer() {
+        if (this.mobile || this.pointerLocked) return;
+        try { this.renderer.domElement.requestPointerLock(); } catch (err) { /* ignore */ }
+      }
+
+      unlockPointer() {
+        if (this.mobile) return;
+        this.ignoreLockLoss = true;
+        if (document.pointerLockElement) document.exitPointerLock();
       }
 
       resize() {
-        const w = innerWidth, h = innerHeight;
+        this.syncPortrait();
+        const { w, h } = this.viewSize();
         this.camera.aspect = w / h;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(w, h);
@@ -2352,8 +2614,9 @@
       start() {
         this.audio.resume();
         document.getElementById("start-screen").classList.add("hidden");
+        document.getElementById("pause-screen").classList.add("hidden");
         document.getElementById("hud").classList.add("visible");
-        this.renderer.domElement.requestPointerLock();
+        this.inputGrace = 0.6;
         this.wave = 0;
         this.score = 0;
         this.leaks = 0;
@@ -2378,13 +2641,13 @@
         if (this.state !== "PLAY") return;
         this.state = "PAUSE";
         document.getElementById("pause-screen").classList.remove("hidden");
-        document.exitPointerLock();
+        this.unlockPointer();
       }
 
       resume() {
         document.getElementById("pause-screen").classList.add("hidden");
         this.state = "PLAY";
-        this.renderer.domElement.requestPointerLock();
+        this.inputGrace = 0.35;
         this.audio.resume();
       }
 
@@ -2407,9 +2670,9 @@
         this.player.rifle.boltReady = true;
         this.rollWind();
         this.state = "PLAY";
-        this.banner(`ONDA ${String(this.wave).padStart(2, "0")}  ·  LUNETA: BOTÃO DIREITO`);
+        this.banner(`ONDA ${String(this.wave).padStart(2, "0")}  ·  LUNETA: ${this.mobile ? "BOTÃO" : "BOTÃO DIREITO"}`);
         document.getElementById("wave-label").textContent = `ONDA ${String(this.wave).padStart(2, "0")}`;
-        this.renderer.domElement.requestPointerLock();
+        this.inputGrace = Math.max(this.inputGrace, 0.4);
         this.updateHud();
       }
 
@@ -2564,7 +2827,7 @@
 
       openUpgrades() {
         this.state = "UPGRADE";
-        document.exitPointerLock();
+        this.unlockPointer();
         const acc = this.shots > 0 ? this.hits / this.shots : 0;
         this.points = 1 + (acc >= 0.45 ? 1 : 0) + (this.heads >= 3 ? 1 : 0);
         this.heads = 0;
@@ -2576,7 +2839,7 @@
 
       gameOver() {
         this.state = "DEAD";
-        document.exitPointerLock();
+        this.unlockPointer();
         document.getElementById("gameover-screen").classList.remove("hidden");
         document.getElementById("go-stats").textContent =
           `Onda ${this.wave}  ·  ${this.score} pontos  ·  o vale tomou o abrigo.`;
@@ -2595,6 +2858,7 @@
         document.getElementById("stamina-fill").style.width = (this.player.stamina * 100) + "%";
         document.getElementById("scope").classList.toggle("on", this.player.scopeMix > 0.55);
         document.getElementById("crosshair").style.opacity = this.player.scopeMix > 0.4 ? "0" : "1";
+        document.getElementById("btn-scope")?.classList.toggle("active", this.player.scoped);
       }
 
       applyThermal() {
@@ -2634,7 +2898,9 @@
           return;
         }
 
-        const hold = !!(this.keys.ShiftLeft || this.keys.ShiftRight);
+        if (this.inputGrace > 0) this.inputGrace -= dtReal;
+
+        const hold = !!(this.keys.ShiftLeft || this.keys.ShiftRight || this.touchBreath);
         this.player.update(dt, hold);
         this.viewmodel.update(dt, this.player, this.time);
         if (this.player.holding && this.player.stamina < 0.28) {
